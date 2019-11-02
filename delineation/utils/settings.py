@@ -16,7 +16,8 @@ def initialize_cuda_and_logging (cfg):
     cfg.TRAINING.MODEL_DIR = MODELS_DIR
 
     if cfg.TRAINING.CUDA:
-
+        if not torch.cuda.is_available():
+            raise Exception("CUDA is NOT available!")
         os.environ['CUDA_VISIBLE_DEVICES'] = str(cfg.TRAINING.GPU_ID)
 
         cudnn.benchmark = True
@@ -32,3 +33,5 @@ def initialize_cuda_and_logging (cfg):
     # set random seeds
     random.seed(cfg.TRAINING.SEED)
     np.random.seed(cfg.TRAINING.SEED)
+
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")

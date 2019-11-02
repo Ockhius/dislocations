@@ -10,6 +10,7 @@ LOGGING:
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
+  MODEL: 'unet'
   MODEL_DIR: 'D:\Models\dislocations\'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True

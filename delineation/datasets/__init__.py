@@ -1,23 +1,27 @@
 import torch
 from delineation.datasets.dislocation_dataset import DislocationDataset
+from delineation.datasets.dislocation_matching_dataset import MatchingDislocationsDataset
 
 
 def make_data_loader(cfg, save_representations= False):
 
     num_workers = cfg.TRAINING.NUM_WORKERS
 
-    if (cfg.TRAINING.TRAINING_SET == 'us3d'\
-            or cfg.TRAINING.TRAINING_SET == 'dislocations') \
-            and save_representations:
+    if (cfg.TRAINING.TRAINING_SET == 'dislocations') and save_representations:
 
         train_set = DislocationDataset(cfg, train=True, save_representations = True)
         val_set   = DislocationDataset(cfg, train=False, save_representations = True)
 
-    elif cfg.TRAINING.TRAINING_SET == 'us3d'\
-            or cfg.TRAINING.TRAINING_SET == 'dislocations':
+    elif cfg.TRAINING.TRAINING_SET == 'dislocations':
 
         train_set = DislocationDataset(cfg, train=True, save_representations = False)
         val_set   = DislocationDataset(cfg, train=False, save_representations = False)
+
+    elif cfg.TRAINING.TRAINING_SET == 'dislocations_matching':
+
+        train_set = MatchingDislocationsDataset(cfg, train=True)
+        val_set = MatchingDislocationsDataset(cfg, train=False)
+
 
     else:
         raise NotImplementedError

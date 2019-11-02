@@ -10,15 +10,15 @@ LOGGING:
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'unet'
+  MODEL: 'scmnet'
   MODEL_DIR: 'D:\Models\dislocations\'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
-  LOSS: 'bce'
+  LOSS: 'smooth_l1_masked_disparity'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation_small_unet'
-  TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
+  EXPERIMENT_NAME: 'dislocations_matching_scmnet'
+  TRAINING_SET: 'dislocations_matching' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 4
@@ -44,9 +44,15 @@ TRAINING:
   GPU_ID: 1
 
   SEED: 42
+  RESBLOCK_NUM: 2
+  DISPBLOCK_NUM: 1
+  MAXDISP: 16
+  DISPSPACE: 'two-sided'
+  WIDTH: 512
+  HEIGHT: 256
 
 TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: 'D:\Models\dislocations\dislocations_segmentation_unet\150_segmentor.tar'
+  MODEL_WEIGHTS: ''
