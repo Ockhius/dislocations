@@ -23,6 +23,6 @@ class smooth_l1_masked_dispartiy(torch.nn.Module):
     def forward(self, dl, dlgt, lgt):
 
         mask = lgt > 0
-        _loss = F.smooth_l1_loss(dl[mask], dlgt[mask], reduction='mean')
+        _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
         _loss[torch.isnan(_loss)] = 0
         return _loss

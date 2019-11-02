@@ -24,7 +24,7 @@ def do_validate(model, val_loader, loss_func):
     indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, cfg.TEST.BATCH_SIZE,
                                                  cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
-    for batch_idx, (l, r, lgt, dlgt, _, l_name) in enumerate(val_loader):
+    for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(val_loader):
 
         with torch.no_grad():
             l, r, lgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), dlgt.to(_device)
@@ -55,7 +55,7 @@ def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger)
         print('This is %d-th epoch' % epoch)
         total_train_loss = 0
 
-        for batch_idx, (l, r, lgt, dlgt, _, l_name) in enumerate(train_loader):
+        for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(train_loader):
 
             start_time = time.time()
 
