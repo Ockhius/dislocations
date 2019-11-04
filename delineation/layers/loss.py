@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 class binary_cross_entropy(torch.nn.Module):
     def __init__(self, ignore_index=250):
 

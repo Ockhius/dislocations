@@ -1,7 +1,7 @@
 import torch
 
 
-def cost_volume(ref, target, disp_space='two-sided', maxdisp=32):
+def cost_volume(ref, target, disp_space='two-sided', maxdisp=16):
     if disp_space == 'two-sided':
         lowest = - maxdisp
         highest = maxdisp

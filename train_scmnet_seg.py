@@ -89,7 +89,7 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
 
         if epoch % cfg.TRAINING.SAVE_MODEL_STEP == 0:
-            savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_scmnet_light.tar')
+            savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_scmnet_seg_light.tar')
 
             torch.save({
                 'epoch': epoch,
