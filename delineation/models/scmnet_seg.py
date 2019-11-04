@@ -6,20 +6,24 @@ from delineation.models.blocks.blocks_2d import *
 from delineation.layers.cost_volume import *
 
 
-class SCMNET(nn.Module):
-    def __init__(self, in_channels, out_channels, num_block, maxdisp=32, disp_space='two-sided'):
-        super(SCMNET, self).__init__()
+class SCMNET_SEG(nn.Module):
+    def __init__(self, in_channels, seg_in_channels, out_channels, num_block, maxdisp=16, disp_space='two-sided'):
+        super(SCMNET_SEG, self).__init__()
         self.disp_space = disp_space
         self.maxdisp = maxdisp
         self.out_channels = out_channels
         self.in_channels = in_channels
+        self.seg_in_channels = seg_in_channels
 
         self.conv0 = nn.Conv2d(self.in_channels, 32, 5, 2, 2)
         self.bn0 = nn.BatchNorm2d(32)
-
         self.res_block = self._make_layer(res_2d_block, 32, 32, num_block[0], stride=1)
 
-        self.conv1 = nn.Conv2d(32, 32, 3, 1, 1)
+        self.conv0_seg = nn.Conv2d(self.seg_in_channels, 32, 5, 2, 2)
+        self.bn0_seg = nn.BatchNorm2d(32)
+        self.res_block_seg = self._make_layer(res_2d_block, 32, 32, 1, stride=1)
+
+        self.conv1 = nn.Conv2d(64, 32, 3, 1, 1)
         self.bn1 = nn.BatchNorm2d(32)
 
         # conv3d
@@ -40,7 +44,7 @@ class SCMNET(nn.Module):
         # last deconv3d
         self.deconv5 = nn.ConvTranspose3d(32, self.out_channels, 3, 2, 1, 1)
 
-    def forward(self, left_im, right_im):
+    def forward(self, left_im, right_im, left_segmap, right_segmap):
         # N : Batchsize
         # D : 2 * maxdisp (two-sided)
 
@@ -49,11 +53,19 @@ class SCMNET(nn.Module):
         left_fmap = F.relu(self.bn0(self.conv0(left_im)))  # (N, 32, H/2, W/2)
 
         right_fmap = self.res_block(right_fmap)
-        left_fmap = self.res_block(left_fmap)
+        left_fmap = self.res_block(left_fmap)  # (N, 32, H/2, W/2)
+
+        # segmentation features
+        right_segmap = self.res_block_seg(self.bn0_seg(self.conv0_seg(right_segmap)))
+        left_segmap = self.res_block_seg(self.bn0_seg(self.conv0_seg(left_segmap)))  # (N, 32, H/2, W/2)
+
+        # extended features
+        right_fmap = torch.cat([right_fmap, right_segmap], dim=1)
+        left_fmap = torch.cat([left_fmap, left_segmap], dim=1)  # (N, 64, H/2, W/2)
 
         # feature reshape
         right_fmap = F.relu(self.bn1(self.conv1(right_fmap)))
-        left_fmap = F.relu(self.bn1(self.conv1(left_fmap)))
+        left_fmap = F.relu(self.bn1(self.conv1(left_fmap)))  # (N, 32, H/2, W/2)
 
         # cost volume
         cv = cost_volume(left_fmap, right_fmap,
@@ -79,3 +91,5 @@ class SCMNET(nn.Module):
             layers.append(block(in_planes, planes, step))
 
         return nn.Sequential(*layers)
+
+

@@ -10,21 +10,21 @@ LOGGING:
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'scmnet'
+  MODEL: 'unet,scmnet_seg'
   MODEL_DIR: 'D:\Models\dislocations\'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'smooth_l1_masked_disparity'
 
-  EXPERIMENT_NAME: 'dislocations_matching_scmnet'
+  EXPERIMENT_NAME: 'dislocations_matching_scmnet_seg'
   TRAINING_SET: 'dislocations_matching' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 4
   PIN_MEMORY: True
 
-  RESUME: ''
+  RESUME: ','
   START_EPOCH: 0
   EPOCHS: 150
 
@@ -55,4 +55,4 @@ TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: ''
+  MODEL_WEIGHTS: 'D:\Models\dislocations\dislocations_segmentation_unet\150_segmentor.tar,'
