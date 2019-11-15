@@ -12,10 +12,10 @@ import random
 
 class DislocationDataset(Dataset):
 
-    def __init__(self, cfg, transform=None, train=True, save_representations=False):
+    def __init__(self, rootdir, n_channels=1, transform=None, train=True, save_representations=False):
 
-        self.cfg = cfg
-        self.root_dir = cfg.INPUT.SOURCE
+        self.root_dir = rootdir
+        self.n_channels = n_channels
         self.transform = transform
         self.split = 'train' if train else 'test'
         self.save_representations = save_representations
@@ -34,7 +34,7 @@ class DislocationDataset(Dataset):
 
         left_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['L'], self.l_images_path[idx]))
         right_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['R'], self.l_images_path[idx].replace('LEFT','RIGHT')))
-        if self.cfg.TRAINING.NUM_CHANNELS == 1:
+        if self.n_channels == 1:
             left_img, right_img = left_img.convert('L'), right_img.convert('L')
 
         left_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
@@ -82,7 +82,7 @@ class DislocationDataset(Dataset):
         left_gt_img = torch.from_numpy(left_gt_img).float()
         right_gt_img = torch.from_numpy(right_gt_img).float()
 
-        if self.cfg.TRAINING.NUM_CHANNELS == 1:
+        if self.n_channels == 1:
 
             left_img = left_img.unsqueeze(0)
             right_img = right_img.unsqueeze(0)
@@ -99,8 +99,8 @@ class DislocationDataset(Dataset):
 
 if __name__ == '__main__':
 
-        cfg.merge_from_file('C:\\Users\\okana\\workspace\\projects\\dislocations\\delineation\\configs\\dislocation_segmentation_home.yml')
-        dataset = DislocationDataset(cfg=cfg, train=True)
+        #cfg.merge_from_file('C:\\Users\\okana\\workspace\\projects\\dislocations\\delineation\\configs\\dislocation_segmentation_home.yml')
+        dataset = DislocationDataset(rootdir="D:/Datasets/dislocations/ALL_DATA_fixed_bottom_resized/", train=True)
         l, r, lgt, rgt, _ = dataset[0]
 
         ax = plt.subplot(2, 2, 1)

@@ -48,3 +48,22 @@ class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
         _loss[torch.isnan(_loss)] = 0
 
         return _loss + 0.5 * _loss_recon, _loss
+
+
+class smooth_l1_disparity_and_bce(torch.nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.bce_logits = torch.nn.BCEWithLogitsLoss()
+
+    def forward(self, dl, dlgt, sl, lgt):
+        mask = lgt > 0
+
+        _loss_seg = self.bce_logits(sl, lgt)
+        _loss_seg[torch.isnan(_loss_seg)] = 0
+
+        _loss_disp = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
+        _loss_disp[torch.isnan(_loss_disp)] = 0
+
+        _loss = _loss_disp + 2 * _loss_seg
+        return _loss, _loss_disp, _loss_seg

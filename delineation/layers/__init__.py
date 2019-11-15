@@ -1,4 +1,4 @@
-from .loss import binary_cross_entropy, smooth_l1_masked_dispartiy, smooth_l1_disparity_and_edge_warp
+from .loss import *
 
 
 def make_loss(cfg):
@@ -12,5 +12,8 @@ def make_loss(cfg):
 
     if type == 'smooth_l1_diparity_and_edge_warp':
         return smooth_l1_disparity_and_edge_warp()
+
+    if type == 'smooth_l1_masked_disparity_and_bce':
+        return smooth_l1_disparity_and_bce()
 
     return binary_cross_entropy()
