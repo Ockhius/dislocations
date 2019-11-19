@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="mishchuk@iccvlabsrv27.iccluster.epfl.ch:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/cvlabsrc1/cvlab/datasets_anastasiia/Dislocations/dislocations" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>
