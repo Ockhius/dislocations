@@ -9,17 +9,13 @@ def make_data_loader(cfg, save_representations= False):
 
     if (cfg.TRAINING.TRAINING_SET == 'dislocations') and save_representations:
 
-        train_set = DislocationDataset(rootdir=cfg.INPUT.SOURCE, n_channels=cfg.TRAINING.NUM_CHANNELS,
-                                       train=True, save_representations=True)
-        val_set   = DislocationDataset(rootdir=cfg.INPUT.SOURCE, n_channels=cfg.TRAINING.NUM_CHANNELS,
-                                       train=False, save_representations=True)
+        train_set = DislocationDataset(cfg, train=True, save_representations = True)
+        val_set   = DislocationDataset(cfg, train=False, save_representations = True)
 
     elif cfg.TRAINING.TRAINING_SET == 'dislocations':
 
-        train_set = DislocationDataset(rootdir=cfg.INPUT.SOURCE, n_channels=cfg.TRAINING.NUM_CHANNELS,
-                                       train=True, save_representations=False)
-        val_set   = DislocationDataset(rootdir=cfg.INPUT.SOURCE, n_channels=cfg.TRAINING.NUM_CHANNELS,
-                                       train=False, save_representations=False)
+        train_set = DislocationDataset(cfg, train=True, save_representations = False)
+        val_set   = DislocationDataset(cfg, train=False, save_representations = False)
 
     elif cfg.TRAINING.TRAINING_SET == 'dislocations_matching':
 

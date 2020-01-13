@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@sftp://mishchuk@iccvlabsrv27.iccluster.epfl.ch:22/home/mishchuk/anaconda3/envs/tf_gpu/bin/python3">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$" remote-root="/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations" />
+            </list>
+          </settings>
+        </remote-mappings>
+      </list>
+    </list>
+  </component>
+</project>

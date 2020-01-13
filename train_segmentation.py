@@ -5,7 +5,7 @@ import sys
 import torch
 
 from delineation.configs.defaults_segmentation import _C as cfg
-from delineation.utils import settings
+from delineation.utils.settings import initialize_cuda_and_logging
 from delineation.models import build_model
 from delineation.layers import make_loss
 from delineation.solver import make_optimizer
@@ -13,7 +13,6 @@ from delineation.datasets import make_data_loader
 from delineation.logger import make_logger
 
 sys.path.append(".")
-
 
 def do_validate(model, val_loader, loss_func):
 
@@ -28,80 +27,90 @@ def do_validate(model, val_loader, loss_func):
             seg_r, seg_rep_r = model(r)
 
             loss = loss_func(seg_l, lgt, seg_r, rgt)
-
-            total_test_loss += float(loss)
+            total_test_loss += loss.item()
 
     model.train()
 
-    return total_test_loss / len(val_loader)
+    return total_test_loss/ len(val_loader)
+
+def do_train(
+
+        cfg,
+        model,
+        train_loader,
+        val_loader,
+        optimizer,
+        loss_func,
+        logger):
 
 
-def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger):
-    start_full_time = time.time()
-    model.train()
+        start_full_time = time.time()
+        model.train()
 
-    start_epoch, end_epoch = cfg.TRAINING.START_EPOCH, cfg.TRAINING.EPOCHS
+        start_epoch, end_epoch = cfg.TRAINING.START_EPOCH, cfg.TRAINING.EPOCHS
 
-    for epoch in range(start_epoch, end_epoch + 1):
-        print('This is %d-th epoch' % epoch)
-        total_train_loss = 0
+        for epoch in range(start_epoch, end_epoch + 1):
+            print('This is %d-th epoch' % (epoch))
+            total_train_loss = 0
+        #   adjust_learning_rate(optimizer, epoch)
 
-        for batch_idx, (l, r, lgt, rgt, l_name) in enumerate(train_loader):
-            start_time = time.time()
+            for batch_idx, (l, r, lgt, rgt, l_name) in enumerate(train_loader):
+                start_time = time.time()
 
-            optimizer.zero_grad()
+                optimizer.zero_grad()
 
-            l, r, lgt, rgt = l.cuda(), r.cuda(), lgt.cuda(), rgt.cuda()
+                l, r, lgt, rgt = l.cuda(), r.cuda(), lgt.cuda(), rgt.cuda()
 
-            seg_l, seg_rep_l = model(l)
-            seg_r, seg_rep_r = model(r)
+                seg_l, seg_rep_l = model(l)
+                seg_r, seg_rep_r = model(r)
 
-            loss = loss_func(seg_l, lgt, seg_r, rgt)
+                loss = loss_func(seg_l, lgt, seg_r, rgt)
 
-            loss.backward()
-            optimizer.step()
+                loss.backward()
+                optimizer.step()
 
-            print('Iter %d training loss = %.3f , time = %.2f' % (batch_idx, loss.item(), time.time() - start_time))
-            total_train_loss += float(loss)
+                print('Iter %d training loss = %.3f , time = %.2f' % (batch_idx, loss, time.time() - start_time))
+                total_train_loss += loss
 
-        print('epoch %d total training loss = %.3f' % (epoch, total_train_loss / len(train_loader)))
+            print('epoch %d total training loss = %.3f' % (epoch, total_train_loss / len(train_loader)))
 
-        if epoch % cfg.LOGGING.LOG_INTERVAL == 0:
-            total_test_loss = do_validate(model, val_loader, loss_func)
-            logger.log_string('test loss for epoch {} : {}\n'.format(epoch, total_test_loss))
-            print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
+            if epoch % cfg.LOGGING.LOG_INTERVAL == 0:
+                total_test_loss = do_validate(model, val_loader, loss_func)
+                logger.log_string('test loss for epoch {} : {}\n'.format(epoch, total_test_loss))
+                print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
 
-        if epoch % cfg.TRAINING.SAVE_MODEL_STEP == 0:
-            savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_segmentor.tar')
+            if epoch % cfg.TRAINING.SAVE_MODEL_STEP == 0:
 
-            torch.save({
-                'epoch': epoch,
-                'state_dict': model.state_dict(),
-                'train_loss': total_train_loss / len(train_loader.dataset),
-            }, savefilename)
+                savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_segmentor.tar')
 
-            print('model is saved: {} - {}'.format(epoch, savefilename))
+                torch.save({
+                    'epoch': epoch,
+                    'state_dict': model.state_dict(),
+                    'train_loss': total_train_loss / len(train_loader.dataset),
+                }, savefilename)
 
-    print('full training time = %.2f HR' % ((time.time() - start_full_time) / 3600))
+                print('model is saved: {} - {}'.format(epoch, savefilename))
 
+        print('full training time = %.2f HR' % ((time.time() - start_full_time) / 3600))
 
 def train(cfg):
-    # create dataset
-    train_loader, val_loader = make_data_loader(cfg)
 
-    # create model
-    model = build_model(cfg)
+        # create dataset
+        train_loader, val_loader = make_data_loader(cfg)
 
-    # create optimizer
-    optimizer = make_optimizer(cfg, model)
+        # create model
+        model = build_model(cfg)
 
-    # create loss
-    loss_func = make_loss(cfg)
+        # create optimizer
+        optimizer = make_optimizer(cfg, model)
 
-    # create logger
-    logger = make_logger(cfg)
+        # create loss
+        loss_func = make_loss(cfg)
 
-    do_train(
+        # create logger
+        logger = make_logger(cfg)
+
+        do_train(
         cfg,
         model,
         train_loader,
@@ -110,14 +119,12 @@ def train(cfg):
         loss_func,
         logger)
 
-
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
+    parser = argparse.ArgumentParser(description="US3D Segmentation training")
 
     parser.add_argument(
-        "--config_file", default="delineation/configs/dislocation_segmentation_home.yml", help="path to config file",
-        type=str
+        "--config_file", default="/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/delineation/configs/dislocation_segmentation.yml", help="path to config file", type=str
     )
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
@@ -129,6 +136,5 @@ if __name__ == '__main__':
 
     cfg.merge_from_list(args.opts)
 
-    settings.initialize_cuda_and_logging(cfg)
-
+    initialize_cuda_and_logging(cfg)
     train(cfg)

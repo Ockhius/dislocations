@@ -1,0 +1,58 @@
+INPUT:
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/datasets/synthetic_retina'
+
+LOGGING:
+
+  ENABLE_LOGGING: True
+  LOG_DIR: 'logs/'
+  LOG_INTERVAL: 1
+
+TRAINING:
+
+  ONLY_SAVE_FEATURES: False
+  MODEL: 'scmnet_seg_joint'
+  MODEL_DIR: 'dislocations'
+  SAVE_MODEL_STEP: 10
+  AUGMENTATION: True
+
+  LOSS: 'smooth_l1_masked_disparity_and_bce'
+
+  EXPERIMENT_NAME: 'blood_vessels_matching_scmnet_seg_joint'
+  TRAINING_SET: 'dislocations_matching' # possible 'us3d', 'dislocations'
+  NUM_CHANNELS: 1
+
+  NUM_WORKERS: 4
+  PIN_MEMORY: True
+
+  RESUME: ','
+  START_EPOCH: 0
+  EPOCHS: 150
+
+  BATCH_SIZE: 2
+  TEST_BATCH_SIZE: 2
+
+  BASE_LR: 0.0001
+  LR_DECAY: 1e-6
+  MOMENTUM: 0.9
+
+  W_DECAY: 1e-4
+  OPTIMIZER: 'Adam'
+
+  AUG: False
+
+  CUDA: True
+  GPU_ID: 0
+
+  SEED: 42
+  RESBLOCK_NUM: 2
+  DISPBLOCK_NUM: 1
+  MAXDISP: 16
+  DISPSPACE: 'two-sided'
+  WIDTH: 512
+  HEIGHT: 512
+
+TEST:
+
+  BATCH_SIZE: 4
+  CUDA: True
+  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation_unet/50_segmentor.tar,'

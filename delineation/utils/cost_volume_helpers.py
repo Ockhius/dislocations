@@ -6,12 +6,13 @@ import numpy as np
 import torch
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use("TkAgg")
+#matplotlib.use("TkAgg")
 from mpl_toolkits.mplot3d import Axes3D
 
 
 def volume_indices(D, B, H, W, device):
     indices = torch.arange(0, D, 1, dtype=torch.float32, requires_grad=False)
+    indices[0]=1e-6
     indices = indices.unsqueeze(0).unsqueeze(0).unsqueeze(3).unsqueeze(3)
     indices = indices.expand(B, 1, D, H, W).to(device).contiguous()
 

@@ -52,6 +52,9 @@ class MatchingDislocationsDataset(Dataset):
         left_img = np.array(left_img, dtype=np.float32) / 255.0
         right_img = np.array(right_img, dtype=np.float32) / 255.0
 
+        left_img = (left_img  - left_img.mean())/(left_img.std()+1e-6)
+        right_img = (right_img  - right_img.mean())/(right_img.std()+1e-6)
+
         left_seg_img = self.normalize_image(left_seg_img)
         right_seg_img = self.normalize_image(right_seg_img)
 

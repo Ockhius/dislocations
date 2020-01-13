@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from delineation.configs.defaults_segmentation import _C as cfg
 from delineation.utils import settings, cost_volume_helpers
-from delineation.models import build_model
+from delineation.models import build_model_list
 from delineation.layers import make_loss
 from delineation.solver import make_optimizer
 from delineation.datasets import make_data_loader
@@ -16,22 +16,26 @@ from delineation.logger import make_logger
 sys.path.append(".")
 
 
-def do_validate(model, val_loader, loss_func):
+def do_validate(seg_model, model, val_loader, loss_func):
 
+    seg_model.eval()
     model.eval()
     total_test_loss = 0
 
-    indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, cfg.TEST.BATCH_SIZE,
-                                                 cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
-    for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(val_loader):
+    for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
+        indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
+                                                     cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
         with torch.no_grad():
-            l, r, lgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), dlgt.to(_device)
+            l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
 
-            dl_scores = model(l, r)
+            l_seg, l_segmap = seg_model(l)
+            r_seg, r_segmap = seg_model(r)
+
+            dl_scores = model(l_segmap, r_segmap)
             dl = F.softmax(-dl_scores, 2)
-            dl = torch.sum(dl.mul(indices[:len(l), :, :, :]), 2) - cfg.TRAINING.MAXDISP  # CHECK HERE AGAIN !
+            dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
             loss = loss_func(dl, dlgt, lgt)
 
@@ -42,32 +46,37 @@ def do_validate(model, val_loader, loss_func):
     return total_test_loss / len(val_loader)
 
 
-def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger):
+def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_func, logger):
     start_full_time = time.time()
+    seg_model.eval()
     model.train()
 
     start_epoch, end_epoch = cfg.TRAINING.START_EPOCH, cfg.TRAINING.EPOCHS
 
-    indices = cost_volume_helpers.volume_indices(2*cfg.TRAINING.MAXDISP, cfg.TRAINING.BATCH_SIZE,
-                                                 cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
     for epoch in range(start_epoch, end_epoch + 1):
         print('This is %d-th epoch' % epoch)
         total_train_loss = 0
 
-        for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(train_loader):
+        for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(train_loader):
+
+            indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
+                                                         cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
             start_time = time.time()
 
             optimizer.zero_grad()
 
-            l, r, lgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), dlgt.to(_device)
+            l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
 
-            dl_scores = model(l, r)
+            l_seg, l_segmap = seg_model(l)
+            r_seg, r_segmap = seg_model(r)
+
+            dl_scores = model(l_segmap, r_segmap)
             dl = F.softmax(-dl_scores, 2)
-            dl = torch.sum(dl.mul(indices[:len(l), :, :, :]), 2) - cfg.TRAINING.MAXDISP
 
-            loss = loss_func(dl, dlgt, lgt)
+            dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
+            loss = loss_func(dl, dlgt , lgt)
 
             loss.backward()
             optimizer.step()
@@ -78,7 +87,7 @@ def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger)
         print('epoch %d total training loss = %.3f' % (epoch, total_train_loss / len(train_loader)))
 
         if epoch % cfg.LOGGING.LOG_INTERVAL == 0:
-            total_test_loss = do_validate(model, val_loader, loss_func)
+            total_test_loss = do_validate(seg_model, model, val_loader, loss_func)
             logger.log_string('test loss for epoch {} : {}\n'.format(epoch, total_test_loss))
             print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
 
@@ -101,7 +110,7 @@ def train(cfg):
     train_loader, val_loader = make_data_loader(cfg)
 
     # create model
-    model = build_model(cfg)
+    seg_model, model = build_model_list(cfg, False)
 
     # create optimizer
     optimizer = make_optimizer(cfg, model)
@@ -114,6 +123,7 @@ def train(cfg):
 
     do_train(
         cfg,
+        seg_model,
         model,
         train_loader,
         val_loader,
@@ -127,7 +137,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
 
     parser.add_argument(
-        "--config_file", default="delineation/configs/dislocation_matching_home.yml", help="path to config file",
+        "--config_file", default="delineation/configs/dislocation_matching.yml", help="path to config file",
         type=str
     )
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,

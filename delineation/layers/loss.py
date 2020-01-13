@@ -2,6 +2,19 @@ import torch
 import torch.nn.functional as F
 from delineation.utils import *
 
+
+def bce_segmentation_loss(projection, gt):
+    criterion = torch.nn.BCEWithLogitsLoss()
+    loss = criterion(projection, gt)
+    return loss
+
+def initia_loss_func(seg_l, lgt, seg_r, rgt):
+
+    loss = 0.5 * bce_segmentation_loss(seg_l, lgt) \
+           + 0.5 * bce_segmentation_loss(seg_r, rgt)
+
+    return loss
+
 class binary_cross_entropy(torch.nn.Module):
     def __init__(self, ignore_index=250):
 
@@ -11,7 +24,6 @@ class binary_cross_entropy(torch.nn.Module):
         self.right_bce_logits = torch.nn.BCEWithLogitsLoss()
 
     def forward(self, seg_l, lgt, seg_r, rgt):
-
         _loss = 0.5 * self.left_bce_logits(seg_l, lgt) + 0.5 * self.right_bce_logits(seg_r, rgt)
         return _loss
 
@@ -24,8 +36,11 @@ class smooth_l1_masked_dispartiy(torch.nn.Module):
     def forward(self, dl, dlgt, lgt):
 
         mask = lgt > 0
+        print(dl[mask].squeeze()[0:10])
+        print(dlgt.unsqueeze(1)[mask].squeeze()[0:10])
+
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
-        _loss[torch.isnan(_loss)] = 0
+      #  _loss[torch.isnan(_loss)] = 0
         return _loss
 
 
@@ -47,7 +62,7 @@ class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
         _loss[torch.isnan(_loss)] = 0
 
-        return _loss + 0.5 * _loss_recon, _loss
+        return _loss + 0.5 * _loss_recon
 
 
 class smooth_l1_disparity_and_bce(torch.nn.Module):
