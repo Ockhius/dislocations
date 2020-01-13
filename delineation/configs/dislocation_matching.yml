@@ -24,14 +24,14 @@ TRAINING:
   NUM_WORKERS: 4
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_unet/90_segmentor.tar,'
+  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_unet/40_segmentor.tar,'
   START_EPOCH: 0
   EPOCHS: 150
 
   BATCH_SIZE: 2
   TEST_BATCH_SIZE: 2
 
-  BASE_LR: 0.001
+  BASE_LR: 0.0001
   LR_DECAY: 1e-6
   MOMENTUM: 0.9
 
