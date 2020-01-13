@@ -5,7 +5,7 @@ import sys
 import torch
 
 from delineation.configs.defaults_segmentation import _C as cfg
-from delineation.utils.settings import initialize_cuda_and_logging
+from delineation.utils.settings import initialize_cuda_and_logging, debug_segmentation_val
 from delineation.models import build_model
 from delineation.layers import make_loss
 from delineation.solver import make_optimizer
@@ -28,6 +28,16 @@ def do_validate(model, val_loader, loss_func):
 
             loss = loss_func(seg_l, lgt, seg_r, rgt)
             total_test_loss += loss.item()
+
+            seg_l, lgt, l = seg_l.detach(), lgt.detach(), l.detach()
+            seg_l, seg_r = torch.sigmoid(seg_l) >0.5, torch.sigmoid(seg_r)>0.5
+
+            for i in range(0, len(seg_l)):
+                debug_segmentation_val(l[i],
+                                  seg_l[i],
+                                   lgt[i],
+                                   os.path.join(cfg.LOGGING.LOG_DIR, 'check_segmentation_'+str(batch_idx)+'_'+str(i)+'.png'))
+
 
     model.train()
 

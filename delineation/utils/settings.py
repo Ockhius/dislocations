@@ -4,6 +4,33 @@ import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+
+def debug_segmentation_val(left_img, leftpred, leftgt, filename=None):
+    left_img, leftpred, leftgt = left_img.squeeze(0), leftpred.squeeze(0), leftgt.squeeze(0)
+
+    fig = plt.figure()
+
+    plt.subplot(1, 3, 1)
+    if left_img.shape[0] > 1 and len(left_img.shape)>2:
+        plt.imshow(left_img.data.cpu().numpy().transpose(1, 2, 0))
+    else:
+        plt.imshow(left_img.data.cpu().numpy(), cmap='gray')
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(leftgt.data.cpu().numpy(), cmap='gray')
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(leftpred.data.cpu().numpy(), cmap='gray')
+
+    fig.set_size_inches(np.array(fig.get_size_inches()) * 3)
+
+    plt.savefig(filename), plt.close()
+
 
 def initialize_cuda_and_logging (cfg):
 
