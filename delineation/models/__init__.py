@@ -75,7 +75,7 @@ def build_model_list(cfg, save_representations):
             state_dict = torch.load(model_resume[idx])
             model.load_state_dict(state_dict['state_dict'])
             print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(model_weights[idx], state_dict['epoch']))
+                  .format(model_resume[idx], state_dict['epoch']))
 
             model.eval()
 

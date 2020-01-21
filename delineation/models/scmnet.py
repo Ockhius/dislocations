@@ -60,16 +60,16 @@ class GC_NET(nn.Module):
 
         # conv3d
         self.conv3d_1 = nn.Conv3d(64, 32, 3, 1, 1)
-        self.bn3d_1 = nn.InstanceNorm3d(32)
+        self.bn3d_1 = nn.BatchNorm3d(32)
         self.conv3d_2 = nn.Conv3d(32, 32, 3, 1, 1)
-        self.bn3d_2 = nn.InstanceNorm3d(32)
+        self.bn3d_2 = nn.BatchNorm3d(32)
 
         self.conv3d_3 = nn.Conv3d(64, 64, 3, 2, 1)
-        self.bn3d_3 = nn.InstanceNorm3d(64)
+        self.bn3d_3 = nn.BatchNorm3d(64)
         self.conv3d_4 = nn.Conv3d(64, 64, 3, 2, 1)
-        self.bn3d_4 = nn.InstanceNorm3d(64)
+        self.bn3d_4 = nn.BatchNorm3d(64)
         self.conv3d_5 = nn.Conv3d(64, 64, 3, 2, 1)
-        self.bn3d_5 = nn.InstanceNorm3d(64)
+        self.bn3d_5 = nn.BatchNorm3d(64)
 
         # conv3d sub_sample block
         self.block_3d_1 = self._make_layer(block_3d, 64, 64, num_block, stride=2)
@@ -78,13 +78,13 @@ class GC_NET(nn.Module):
         self.block_3d_4 = self._make_layer(block_3d, 64, 128, num_block, stride=2)
         # deconv3d
         self.deconv1 = nn.ConvTranspose3d(128, 64, 3, 2, 1, 1)
-        self.debn1 = nn.InstanceNorm3d(64)
+        self.debn1 = nn.BatchNorm3d(64)
         self.deconv2 = nn.ConvTranspose3d(64, 64, 3, 2, 1, 1)
-        self.debn2 = nn.InstanceNorm3d(64)
+        self.debn2 = nn.BatchNorm3d(64)
         self.deconv3 = nn.ConvTranspose3d(64, 64, 3, 2, 1, 1)
-        self.debn3 = nn.InstanceNorm3d(64)
+        self.debn3 = nn.BatchNorm3d(64)
         self.deconv4 = nn.ConvTranspose3d(64, 32, 3, 2, 1, 1)
-        self.debn4 = nn.InstanceNorm3d(32)
+        self.debn4 = nn.BatchNorm3d(32)
         # last deconv3d
         self.deconv5 = nn.ConvTranspose3d(32, self.out_channels, 3, 2, 1, 1)
 

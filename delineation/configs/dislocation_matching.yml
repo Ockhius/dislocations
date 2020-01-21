@@ -24,7 +24,7 @@ TRAINING:
   NUM_WORKERS: 4
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_old_unet/70_segmentor.tar,'
+  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_old_unet/70_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_matching_old_warp_check/20_scmnet_light.tar'
   START_EPOCH: 0
   EPOCHS: 150
 

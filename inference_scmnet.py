@@ -25,11 +25,8 @@ def do_inference(val_loader, seg_model, model, loss_func):
     for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
         with torch.no_grad():
 
-            indices = torch.arange(0, 2 * cfg.TRAINING.MAXDISP, 1, dtype=torch.float32, requires_grad=False)
-            indices = indices.unsqueeze(0).unsqueeze(0).unsqueeze(3).unsqueeze(3)
-            indices = indices.expand(len(l), 1, 2 * cfg.TRAINING.MAXDISP,
-                                     cfg.TRAINING.HEIGHT,
-                                     cfg.TRAINING.WIDTH).cuda().contiguous()
+            indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
+                                                         cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
 
             with torch.no_grad():
