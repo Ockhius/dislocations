@@ -10,6 +10,23 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+
+def evaluate_results(r_gt_disp, r_pred_disp, r_segm):
+
+    r_gt_disp = r_gt_disp.squeeze().data.cpu().numpy()
+    r_pred_disp = r_pred_disp.squeeze().data.cpu().numpy()
+    r_segm = r_segm.squeeze().data.cpu().numpy()
+
+    mask = r_segm == 1
+
+    pix1_err = np.sum((np.abs(r_pred_disp*mask - r_gt_disp*mask) > 1)) / np.sum(mask)
+    pix3_err = np.sum((np.abs(r_pred_disp*mask - r_gt_disp*mask) > 3)) / np.sum(mask)
+    pix5_err = np.sum((np.abs(r_pred_disp*mask - r_gt_disp*mask) > 5)) / np.sum(mask)
+
+    epe = np.mean(np.abs(r_pred_disp[mask] - r_gt_disp[mask]))
+
+    return pix1_err, pix3_err, pix5_err, epe
+
 def debug_segmentation_val(left_img, leftpred, leftgt, filename=None):
     left_img, leftpred, leftgt = left_img.squeeze(0), leftpred.squeeze(0), leftgt.squeeze(0)
 

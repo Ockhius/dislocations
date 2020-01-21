@@ -62,20 +62,17 @@ class DislocationDataset(Dataset):
                 left_img = rotate.augment_image(np.array(left_img))
                 left_gt_img = rotate.augment_image(np.array(left_gt_img))
 
-        # left_img = np.array(left_img, dtype=np.float32) / 255.0
-        # right_img = np.array(right_img, dtype=np.float32) / 255.0
+        left_img = np.array(left_img, dtype=np.float32) / 255.0
+        right_img = np.array(right_img, dtype=np.float32) / 255.0
 
-        left_img = np.array(left_img, dtype=np.float32)
-        right_img = np.array(right_img, dtype=np.float32)
-
-        left_img = (left_img  - left_img.mean())/(left_img.std()+1e-6)
-        right_img = (right_img  - right_img.mean())/(right_img.std()+1e-6)
+        # left_img = (left_img  - left_img.mean())/(left_img.std()+1e-6)
+        # right_img = (right_img  - right_img.mean())/(right_img.std()+1e-6)
 
         left_gt_img = np.array(left_gt_img, dtype=np.float32)
         right_gt_img = np.array(right_gt_img, dtype=np.float32)
 
-        left_gt_img[left_gt_img < 128] = 0
-        right_gt_img[right_gt_img < 128] = 0
+        # left_gt_img[left_gt_img < 128] = 0
+        # right_gt_img[right_gt_img < 128] = 0
 
         if np.max(left_gt_img) > 1:
             left_gt_img = left_gt_img / 255.0

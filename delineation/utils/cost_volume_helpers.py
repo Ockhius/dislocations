@@ -12,14 +12,13 @@ from mpl_toolkits.mplot3d import Axes3D
 
 def volume_indices(D, B, H, W, device):
     indices = torch.arange(0, D, 1, dtype=torch.float32, requires_grad=False)
-    indices[0]=1e-6
     indices = indices.unsqueeze(0).unsqueeze(0).unsqueeze(3).unsqueeze(3)
     indices = indices.expand(B, 1, D, H, W).to(device).contiguous()
 
     return indices
 
 
-def back_project_numpy(lgt, dl, maxdisp=16, mode='two-sided'):
+def back_project_numpy(lgt, dl, maxdisp=32, mode='two-sided'):
     ''' image : numpy ndarray (H, W)
         disparity : numpy ndarray (H, W, 1)
         output : numpy ndarray 3D volume (1, 2D, H, W) '''
@@ -27,9 +26,11 @@ def back_project_numpy(lgt, dl, maxdisp=16, mode='two-sided'):
     H, W = lgt.shape[0], lgt.shape[1]
     D = maxdisp
     dl = dl[:,:,0]
+    print(dl)
     mask = (dl > -D-1) & (dl < D) *1
+    print(mask)
     dl = np.clip(dl, -D, D-1)
-
+    print(dl)
     dd = (dl + D).astype(int)
     yy = np.arange(0, H, 1)[:,np.newaxis].repeat(W, 1).astype(int)
     xx = np.arange(0, W, 1)[:,np.newaxis].transpose().repeat(H, 0).astype(int)

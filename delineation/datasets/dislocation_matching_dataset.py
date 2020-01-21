@@ -44,26 +44,29 @@ class MatchingDislocationsDataset(Dataset):
 
         left_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['L'], self.l_images_path[idx])).convert('L')
         right_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
-        left_seg_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
-        right_seg_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
+        left_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
+        right_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
 
         left_disp_gt = np.array(Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['D'], self.l_images_path[idx])).convert('L'), dtype=np.float32)-127
 
         left_img = np.array(left_img, dtype=np.float32) / 255.0
         right_img = np.array(right_img, dtype=np.float32) / 255.0
 
-        left_img = (left_img  - left_img.mean())/(left_img.std()+1e-6)
-        right_img = (right_img  - right_img.mean())/(right_img.std()+1e-6)
+        left_gt_img = np.array(left_gt_img, dtype=np.float32)
+        right_gt_img = np.array(right_gt_img, dtype=np.float32)
 
-        left_seg_img = self.normalize_image(left_seg_img)
-        right_seg_img = self.normalize_image(right_seg_img)
+        if np.max(left_gt_img) > 1:
+            left_gt_img = left_gt_img / 255.0
+
+        if np.max(right_gt_img) > 1:
+            right_gt_img = right_gt_img / 255.0
 
         left_disp_gt[left_disp_gt==-127]=0
 
         left_img = torch.from_numpy(left_img).float().unsqueeze(0)
         right_img = torch.from_numpy(right_img).float().unsqueeze(0)
-        left_seg_img = torch.from_numpy(left_seg_img).float().unsqueeze(0)
-        right_seg_img = torch.from_numpy(right_seg_img).float().unsqueeze(0)
+        left_seg_img = torch.from_numpy(left_gt_img).float().unsqueeze(0)
+        right_seg_img = torch.from_numpy(right_gt_img).float().unsqueeze(0)
 
         return [left_img, right_img, left_seg_img, right_seg_img, left_disp_gt, self.l_images_path[idx]]
 

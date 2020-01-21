@@ -1,5 +1,5 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized'
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_resized_fixed/'
 
 LOGGING:
 
@@ -17,7 +17,7 @@ TRAINING:
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation_unet'
+  EXPERIMENT_NAME: 'dislocations_segmentation_old_unet'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 

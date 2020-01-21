@@ -12,6 +12,7 @@ from delineation.layers import make_loss
 from delineation.solver import make_optimizer
 from delineation.datasets import make_data_loader
 from delineation.logger import make_logger
+from delineation.utils.settings import evaluate_results
 
 sys.path.append(".")
 
@@ -21,6 +22,7 @@ def do_validate(seg_model, model, val_loader, loss_func):
     seg_model.eval()
     model.eval()
     total_test_loss = 0
+    pix1_err_m, pix3_err_m, pix5_err_m, epe_m, count = 0, 0, 0, 0, 0
 
 
     for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
@@ -37,9 +39,20 @@ def do_validate(seg_model, model, val_loader, loss_func):
             dl = F.softmax(-dl_scores, 2)
             dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
-            loss = loss_func(dl, dlgt, lgt)
+            loss = loss_func(dl, rgt, dlgt, lgt)
+            total_test_loss += loss.item()
 
-            total_test_loss += float(loss)
+            for i in range(0, len(dlgt)):
+                pix1_err, pix3_err, pix5_err, epe = evaluate_results(dlgt[i], dl[i], lgt[i])
+
+                pix1_err_m += pix1_err
+                pix3_err_m += pix3_err
+                pix5_err_m += pix5_err
+                epe_m += epe
+                count += 1
+
+
+    print('Mean per dataset: {}, {}, {}, {}'.format(pix1_err_m / count, pix3_err_m / count, pix5_err_m / count, epe_m / count))
 
     model.train()
 
@@ -65,21 +78,32 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
 
             start_time = time.time()
 
-            optimizer.zero_grad()
 
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
 
             l_seg, l_segmap = seg_model(l)
             r_seg, r_segmap = seg_model(r)
 
+            optimizer.zero_grad()
+
             dl_scores = model(l_segmap, r_segmap)
             dl = F.softmax(-dl_scores, 2)
 
             dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
-            loss = loss_func(dl, dlgt , lgt)
+            loss = loss_func(dl, rgt, dlgt, lgt)
 
             loss.backward()
+
             optimizer.step()
+
+            for i in range(0, len(dlgt)):
+                print(l_name[i])
+
+                print(dl[i].max())
+                print(dl[i].min())
+                print(dlgt[i].max())
+                print(dlgt[i].min())
+
 
             print('Iter %d training loss = %.3f , time = %.2f' % (batch_idx, loss.item(), time.time() - start_time))
             total_train_loss += float(loss)
