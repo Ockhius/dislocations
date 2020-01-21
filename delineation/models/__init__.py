@@ -55,10 +55,10 @@ def build_model_list(cfg, save_representations):
             model = UNet(cfg.TRAINING.NUM_CHANNELS)
         elif model_n == 'scmnet':
 
-            model = GC_NET(cfg.TRAINING.MAXDISP, 64, 1, disp_space='two-sided')
+           # model = GC_NET(cfg.TRAINING.MAXDISP, 64, 1, disp_space='two-sided')
 
-            # model = SCMNET(64, 1, [cfg.TRAINING.RESBLOCK_NUM, cfg.TRAINING.DISPBLOCK_NUM],
-            #                 cfg.TRAINING.MAXDISP, cfg.TRAINING.DISPSPACE)
+            model = SCMNET(64, 1, [cfg.TRAINING.RESBLOCK_NUM, cfg.TRAINING.DISPBLOCK_NUM],
+                            cfg.TRAINING.MAXDISP, cfg.TRAINING.DISPSPACE)
         elif model_n == 'scmnet_seg':
 
             model = SCMNET_SEG(cfg.TRAINING.NUM_CHANNELS, 64, 1,

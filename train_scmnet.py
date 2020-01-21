@@ -16,7 +16,6 @@ from delineation.utils.settings import evaluate_results
 
 sys.path.append(".")
 
-
 def do_validate(seg_model, model, val_loader, loss_func):
 
     seg_model.eval()
@@ -95,15 +94,6 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             loss.backward()
 
             optimizer.step()
-
-            for i in range(0, len(dlgt)):
-                print(l_name[i])
-
-                print(dl[i].max())
-                print(dl[i].min())
-                print(dlgt[i].max())
-                print(dlgt[i].min())
-
 
             print('Iter %d training loss = %.3f , time = %.2f' % (batch_idx, loss.item(), time.time() - start_time))
             total_train_loss += float(loss)

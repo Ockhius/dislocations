@@ -64,14 +64,22 @@ def do_inference(val_loader, seg_model, model, loss_func):
             lgt = lgt.cpu().numpy()
             dl = dl.detach().permute(0, 2, 3, 1).cpu().numpy()
 
-           # dlgt = dlgt.unsqueeze(1).detach().permute(0, 2, 3, 1).cpu().numpy()
+            dlgt = dlgt.unsqueeze(1).detach().permute(0, 2, 3, 1).cpu().numpy()
             for i in tqdm(range(len(dl))):
                 vol = cost_volume_helpers.back_project_numpy(lgt[i,0,:,:], dl[i,:,:,:], cfg.TRAINING.MAXDISP, mode='two-sided')
+                vol_gt = cost_volume_helpers.back_project_numpy(lgt[i,0,:,:], dlgt[i,:,:,:], cfg.TRAINING.MAXDISP, mode='two-sided')
 
                 for idx, rotation_angle in enumerate(range(-20, 20, 1)):
                     cost_volume_helpers.visualize_volume(l_name[i], vol[0, :, :, :],
                                                          rotation_angle,
                                                          cfg.LOGGING.LOG_DIR,
+                                                         mode='scatter',
+                                                         save_ext=idx,
+                                                         plot=False)
+
+                    cost_volume_helpers.visualize_volume(l_name[i], vol_gt[0, :, :, :],
+                                                         rotation_angle,
+                                                         cfg.LOGGING.LOG_DIR+'_gt',
                                                          mode='scatter',
                                                          save_ext=idx,
                                                          plot=False)
