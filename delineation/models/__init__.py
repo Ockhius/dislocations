@@ -71,11 +71,11 @@ def build_model_list(cfg, save_representations):
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(model_resume[idx], state_dict['epoch']))
 
-        if save_representations and len(model_resume[idx])>3:
-            state_dict = torch.load(model_resume[idx])
+        if save_representations and len(model_weights[idx])>3:
+            state_dict = torch.load(model_weights[idx])
             model.load_state_dict(state_dict['state_dict'])
             print("=> loaded checkpoint '{}' (epoch {})"
-                  .format(model_resume[idx], state_dict['epoch']))
+                  .format(model_weights[idx], state_dict['epoch']))
 
             model.eval()
 
