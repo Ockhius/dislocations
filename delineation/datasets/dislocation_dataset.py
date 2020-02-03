@@ -71,8 +71,8 @@ class DislocationDataset(Dataset):
         left_gt_img = np.array(left_gt_img, dtype=np.float32)
         right_gt_img = np.array(right_gt_img, dtype=np.float32)
 
-        # left_gt_img[left_gt_img < 128] = 0
-        # right_gt_img[right_gt_img < 128] = 0
+        left_gt_img[left_gt_img < 128] = 0
+        right_gt_img[right_gt_img < 128] = 0
 
         if np.max(left_gt_img) > 1:
             left_gt_img = left_gt_img / 255.0
