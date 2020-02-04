@@ -63,35 +63,35 @@ class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
         recon_l =  F.sigmoid(warp(seg_r, dl))
         recon_l_gt = F.sigmoid(warp(seg_r, dlgt.unsqueeze(1)))
 
-        recon_l_gt = recon_l_gt*mask
+        # recon_l_gt = recon_l_gt*mask
         recon_l = recon_l*mask
 
-        fig = plt.figure()
+        # fig = plt.figure()
+        #
+        # plt.subplot(1, 4, 1)
+        #
+        # plt.imshow(recon_l[0].squeeze().data.cpu().numpy())
+        #
+        # plt.subplot(1, 4, 2)
+        # plt.imshow(recon_l_gt[0].squeeze().data.cpu().numpy(), cmap='gray')
+        #
+        # plt.subplot(1, 4, 3)
+        # plt.imshow(lgt[0].squeeze().data.cpu().numpy(), cmap='gray')
+        #
+        # plt.subplot(1, 4, 4)
+        # plt.imshow(seg_r[0].squeeze().data.cpu().numpy(), cmap='gray')
+        #
+        # fig.set_size_inches(np.array(fig.get_size_inches()) * 3)
+        #
+        # plt.savefig('check_reconstruction.png'), \
+        # plt.close()
 
-        plt.subplot(1, 4, 1)
-
-        plt.imshow(recon_l[0].squeeze().data.cpu().numpy())
-
-        plt.subplot(1, 4, 2)
-        plt.imshow(recon_l_gt[0].squeeze().data.cpu().numpy(), cmap='gray')
-
-        plt.subplot(1, 4, 3)
-        plt.imshow(lgt[0].squeeze().data.cpu().numpy(), cmap='gray')
-
-        plt.subplot(1, 4, 4)
-        plt.imshow(seg_r[0].squeeze().data.cpu().numpy(), cmap='gray')
-
-        fig.set_size_inches(np.array(fig.get_size_inches()) * 3)
-
-        plt.savefig('check_reconstruction.png'), \
-        plt.close()
-
-        _loss_recon = F.smooth_l1_loss(lgt, recon_l)
+        _loss_recon = F.smooth_l1_loss(recon_l[mask], lgt[mask], reduction='mean')
 
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
         _loss[torch.isnan(_loss)] = 0
 
-        return _loss + 0.5 * _loss_recon
+        return 0.5*_loss+0.5*_loss_recon
 
 
 class smooth_l1_disparity_and_bce(torch.nn.Module):
