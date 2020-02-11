@@ -55,10 +55,10 @@ def build_model_list(cfg, save_representations):
             model = UNet(cfg.TRAINING.NUM_CHANNELS)
         elif model_n == 'scmnet':
 
-            model = GC_NET(cfg.TRAINING.MAXDISP, 64, 1, disp_space='two-sided')
+           # model = GC_NET(cfg.TRAINING.MAXDISP, 64, 1, disp_space='two-sided')
 
-            # model = SCMNET(64, 1, [cfg.TRAINING.RESBLOCK_NUM, cfg.TRAINING.DISPBLOCK_NUM],
-            #                 cfg.TRAINING.MAXDISP, cfg.TRAINING.DISPSPACE)
+            model = SCMNET(64, 1, [cfg.TRAINING.RESBLOCK_NUM, cfg.TRAINING.DISPBLOCK_NUM],
+                            cfg.TRAINING.MAXDISP, cfg.TRAINING.DISPSPACE)
         elif model_n == 'scmnet_seg':
 
             model = SCMNET_SEG(cfg.TRAINING.NUM_CHANNELS, 64, 1,
@@ -71,8 +71,8 @@ def build_model_list(cfg, save_representations):
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(model_resume[idx], state_dict['epoch']))
 
-        if save_representations and len(model_resume[idx])>3:
-            state_dict = torch.load(model_resume[idx])
+        if save_representations and len(model_weights[idx])>3:
+            state_dict = torch.load(model_weights[idx])
             model.load_state_dict(state_dict['state_dict'])
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(model_weights[idx], state_dict['epoch']))

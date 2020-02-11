@@ -18,6 +18,8 @@ def cost_volume(ref, target, disp_space='two-sided', maxdisp=16):
                              ref.size()[2],
                              ref.size()[3]).zero_().cuda()
 
+
+
     # reference is the left image, target is the right image. IL (+) DL = IR
     for i, k in enumerate(range(lowest, highest)):
         if k == 0:

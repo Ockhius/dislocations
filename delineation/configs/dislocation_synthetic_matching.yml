@@ -15,9 +15,9 @@ TRAINING:
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
-  LOSS: 'smooth_l1_disparity_and_edge_warp'
+  LOSS: 'smooth_l1_masked_disparity'
 
-  EXPERIMENT_NAME: 'dislocations_synthetic_egmentation_matching_edge_warp'
+  EXPERIMENT_NAME: 'dislocations_synthetic_egmentation_matching'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
@@ -31,7 +31,7 @@ TRAINING:
   BATCH_SIZE: 2
   TEST_BATCH_SIZE: 2
 
-  BASE_LR: 0.001
+  BASE_LR: 0.0001
   LR_DECAY: 1e-6
   MOMENTUM: 0.9
 

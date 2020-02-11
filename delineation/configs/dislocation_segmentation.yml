@@ -17,7 +17,7 @@ TRAINING:
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation_unet'
+  EXPERIMENT_NAME: 'dislocations_segmentation'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 

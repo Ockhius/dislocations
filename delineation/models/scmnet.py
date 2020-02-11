@@ -88,14 +88,45 @@ class GC_NET(nn.Module):
         # last deconv3d
         self.deconv5 = nn.ConvTranspose3d(32, self.out_channels, 3, 2, 1, 1)
 
+    def cost_volume(self, ref, target, disp_space='two-sided', maxdisp=16):
+        if disp_space == 'two-sided':
+            lowest = - maxdisp
+            highest = maxdisp
+            disp_size = 2 * maxdisp
+        else:
+            lowest = 0
+            highest = maxdisp
+            disp_size = maxdisp
+
+        # N x 2F x D/2 x H/2 x W/2
+        cost = torch.FloatTensor(ref.size()[0],
+                                 ref.size()[1] * 2,
+                                 disp_size,
+                                 ref.size()[2],
+                                 ref.size()[3]).zero_().cuda()
+
+        # reference is the left image, target is the right image. IL (+) DL = IR
+        for i, k in enumerate(range(lowest, highest)):
+            if k == 0:
+                cost[:, :ref.size()[1], i, :, :] = ref
+                cost[:, ref.size()[1]:, i, :, :] = target
+            elif k < 0:
+                cost[:, :ref.size()[1], i, :, -k:] = ref[:, :, :, -k:]
+                cost[:, ref.size()[1]:, i, :, -k:] = target[:, :, :, :k]  # target shifted to right over ref
+            else:
+                cost[:, :ref.size()[1], i, :, :-k] = ref[:, :, :, :-k]
+                cost[:, ref.size()[1]:, i, :, :-k] = target[:, :, :, k:]  # target shifted to left over ref
+
+        return cost.contiguous()
+
     def forward(self, seg_rep_left, seg_rep_right):
 
         right_fmap = F.relu(self.bn0(self.conv0(seg_rep_right)))
         left_fmap = F.relu(self.bn0(self.conv0(seg_rep_left)))
 
         # cost volume
-        cvolume = cost_volume(left_fmap, right_fmap, maxdisp=self.maxdisp//2,
-                              disp_space=self.disp_space)
+
+        cvolume = self.cost_volume(left_fmap, right_fmap, self.disp_space, self.maxdisp //2)
 
         conv3d_out = F.relu(self.bn3d_1(self.conv3d_1(cvolume)))
         conv3d_out = F.relu(self.bn3d_2(self.conv3d_2(conv3d_out)))
