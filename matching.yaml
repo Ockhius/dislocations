@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mishchuk-stereo-matching2
+  labels:
+    user: mishchuk
+    priority: "1"
+spec:
+  restartPolicy: Never
+  containers:
+    - name: perform-job
+      image: ic-registry.epfl.ch/cvlab/lis/lab-pytorch-apex:latest
+      imagePullPolicy: Always # load the newest version of the image
+      #command: ["/opt/lab/setup_and_wait.sh"]
+      #   this one will do nothing and wait, so you can enter the container yourself with
+      #   kubectl exec -it pod_name /bin/bash
+
+      command:
+      - "/opt/lab/setup_and_run_command.sh"
+      - "cd /cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/ && sudo pip install yacs && sudo pip install imgaug && python train_scmnet.py"
+      # runs the command on the 2nd line
+
+      env:
+      - name: CLUSTER_USER
+        value: "mishchuk" # set this
+      - name: CLUSTER_USER_ID
+      # set this, run `id` on cvlab cluster to get the number, it will print among other things:
+      # uid=number(yourname)
+        value: "193913"
+      - name: CLUSTER_GROUP_NAME
+        value: "CVLAB-unit"
+      - name: CLUSTER_GROUP_ID
+        value: "11166"
+
+      volumeMounts:
+        - mountPath: /cvlabsrc1
+          name: cvlabsrc1
+        - mountPath: /cvlabdata1
+          name: cvlabdata1
+        - mountPath: /cvlabdata2
+          name: cvlabdata2
+        - mountPath: /dev/shm
+          name: dshm
+
+      # specify that it uses a GPU!
+      resources:
+         limits:
+           nvidia.com/gpu: 1 # requesting 1 GPU
+
+  volumes:
+    - name: cvlabsrc1
+      persistentVolumeClaim:
+        claimName: pv-cvlabsrc1
+
+    - name: cvlabdata1
+      persistentVolumeClaim:
+        claimName: pv-cvlabdata1
+
+    - name: cvlabdata2
+      persistentVolumeClaim:
+        claimName: pv-cvlabdata2
+
+    # shared memory, often needed by PyTorch dataloaders
+    - name: dshm
+      emptyDir:
+        medium: Memory
+        sizeLimit: 16Gi

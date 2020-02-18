@@ -23,7 +23,6 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
     total_test_loss = 0
     pix1_err_m, pix3_err_m, pix5_err_m, epe_m, count = 0, 0, 0, 0, 0
 
-
     for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
         indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
                                                      cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
@@ -35,10 +34,15 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
             r_seg, r_segmap = seg_model(r)
 
             dl_scores = model(l_segmap, r_segmap)
-            dl = F.softmax(-dl_scores, 2)
-            dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
+            dl_ = F.softmax(-dl_scores, 2)
+            dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
-            loss = loss_func(dl, rgt, dlgt, lgt)
+            mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
+            mask = mask.unsqueeze(1).detach()
+
+            loss = loss_func(dl, r_seg, dlgt, lgt)
+            alpha = 0.001
+            loss = loss + alpha * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
             total_test_loss += loss.item()
 
             for i in range(0, len(dlgt)):
@@ -58,6 +62,10 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
 
     return total_test_loss / len(val_loader)
 
+
+def compute_variance(dl, dl_prob, indices, mask):
+    var = torch.sum(torch.pow((indices - dl.unsqueeze(1).unsqueeze(1)), 2).mul(dl_prob), 2)
+    return var[mask].mean()
 
 def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_func, logger, tf_logger):
     start_full_time = time.time()
@@ -87,10 +95,15 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             optimizer.zero_grad()
 
             dl_scores = model(l_segmap, r_segmap)
-            dl = F.softmax(-dl_scores, 2)
+            dl_ = F.softmax(-dl_scores, 2)
+            dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
-            dl = torch.sum(dl.mul(indices), 2) - cfg.TRAINING.MAXDISP
-            loss = loss_func(dl, rgt, dlgt, lgt)
+            mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
+            mask = mask.unsqueeze(1).detach()
+
+            loss = loss_func(dl, r_seg, dlgt, lgt)
+            alpha = 0.001
+            loss = loss + alpha * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
 
             loss.backward()
 
