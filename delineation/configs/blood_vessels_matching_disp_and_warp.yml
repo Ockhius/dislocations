@@ -18,7 +18,7 @@ TRAINING:
   LOSS: 'smooth_l1_disparity_and_edge_warp' # smooth_l1_disparity_and_edge_warp, smooth_l1_masked_disparity, warp_only
   WITH_VAR_LOSS: False
 
-  EXPERIMENT_NAME: 'blood_vessels_disp_only'
+  EXPERIMENT_NAME: 'blood_vessels_disp_and_warp'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
