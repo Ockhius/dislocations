@@ -37,7 +37,7 @@ class smooth_l1_masked_disparity(torch.nn.Module):
 
         super().__init__()
 
-    def forward(self, dl, dlgt, lgt):
+    def forward(self, dl, seg_r, dlgt, lgt):
 
         mask = lgt > 0
         print('Max: {} Min: {}'.format(dlgt.unsqueeze(1)[mask].max(),

@@ -1,0 +1,5 @@
+python train_scmnet.py --config_file='delineation/configs/blood_vessels_matching_disp_and_var.yml'
+python train_scmnet.py --config_file='delineation/configs/blood_vessels_matching_disp_and_warp.yml'
+python train_scmnet.py --config_file='delineation/configs/blood_vessels_matching_disp_and_warp_and_var.yml'
+python train_scmnet.py --config_file='delineation/configs/blood_vessels_matching_disp_only.yml'
+python train_scmnet.py --config_file='delineation/configs/blood_vessels_matching_only_warp.yml'

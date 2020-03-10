@@ -1,0 +1,59 @@
+INPUT:
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/INSPIRE_PNG_ALL_resizedL/'
+
+LOGGING:
+
+  ENABLE_LOGGING: True
+  LOG_DIR: 'logs/'
+  LOG_INTERVAL: 1
+
+TRAINING:
+
+  ONLY_SAVE_FEATURES: False
+  MODEL: 'unet,scmnet'
+  MODEL_DIR: 'models/'
+  SAVE_MODEL_STEP: 10
+  AUGMENTATION: True
+
+  LOSS: 'smooth_l1_disparity_and_edge_warp' # smooth_l1_disparity_and_edge_warp, smooth_l1_masked_disparity, warp_only
+  WITH_VAR_LOSS: False
+
+  EXPERIMENT_NAME: 'blood_vessels_disp_only'
+  TRAINING_SET: 'dislocations_matching' # dislocations_matching
+  NUM_CHANNELS: 1
+
+  NUM_WORKERS: 4
+  PIN_MEMORY: True
+
+  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation/150_segmentor.tar,'
+  START_EPOCH: 0
+  EPOCHS: 150
+
+  BATCH_SIZE: 2
+  TEST_BATCH_SIZE: 2
+
+  BASE_LR: 0.0001
+  LR_DECAY: 1e-6
+  MOMENTUM: 0.9
+
+  W_DECAY: 1e-4
+  OPTIMIZER: 'Adam'
+
+  AUG: False
+
+  CUDA: True
+  GPU_ID: 1
+
+  SEED: 42
+  RESBLOCK_NUM: 2
+  DISPBLOCK_NUM: 1
+  MAXDISP: 32
+  DISPSPACE: 'two-sided'
+  WIDTH: 512
+  HEIGHT: 512
+
+TEST:
+
+  BATCH_SIZE: 4
+  CUDA: True
+  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation/150_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_with_warp_edge_coeff/150_scmnet_light.tar'

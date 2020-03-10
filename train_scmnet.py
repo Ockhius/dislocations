@@ -102,7 +102,8 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             mask = mask.unsqueeze(1).detach()
 
             loss = loss_func(dl, r_seg, dlgt, lgt)
-            loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
+            if cfg.TRAINING.WITH_VAR_LOSS:
+                loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
 
             loss.backward()
 
