@@ -32,7 +32,7 @@ class binary_cross_entropy(torch.nn.Module):
         return _loss
 
 
-class smooth_l1_masked_dispartiy(torch.nn.Module):
+class smooth_l1_masked_disparity(torch.nn.Module):
     def __init__(self):
 
         super().__init__()
@@ -46,8 +46,26 @@ class smooth_l1_masked_dispartiy(torch.nn.Module):
         print(dlgt.unsqueeze(1)[mask].squeeze()[0:10])
 
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
-      #  _loss[torch.isnan(_loss)] = 0
+
         return _loss
+
+class warp_only(torch.nn.Module):
+    def __init__(self):
+
+        super().__init__()
+
+        self.bce_logits = torch.nn.BCEWithLogitsLoss()
+
+    def forward(self, dl, seg_r, dlgt, lgt):
+
+        mask = lgt > 0
+        recon_l =  F.sigmoid(warp(seg_r, dl))
+
+        recon_l = recon_l*mask
+
+        _loss_recon = F.smooth_l1_loss(recon_l[mask], lgt[mask], reduction='mean')
+
+        return _loss_recon
 
 class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
     def __init__(self):

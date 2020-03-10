@@ -23,6 +23,7 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
     total_test_loss = 0
     pix1_err_m, pix3_err_m, pix5_err_m, epe_m, count = 0, 0, 0, 0, 0
 
+
     for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
         indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
                                                      cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
@@ -41,8 +42,7 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
             mask = mask.unsqueeze(1).detach()
 
             loss = loss_func(dl, r_seg, dlgt, lgt)
-            alpha = 0.001
-            loss = loss + alpha * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
+            loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
             total_test_loss += loss.item()
 
             for i in range(0, len(dlgt)):
@@ -102,8 +102,7 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             mask = mask.unsqueeze(1).detach()
 
             loss = loss_func(dl, r_seg, dlgt, lgt)
-            alpha = 0.001
-            loss = loss + alpha * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
+            loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
 
             loss.backward()
 
@@ -168,7 +167,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
 
     parser.add_argument(
-        "--config_file", default="delineation/configs/dislocation_matching.yml", help="path to config file",
+        "--config_file", default="delineation/configs/blood_vessels_matching.yml", help="path to config file",
         type=str
     )
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,

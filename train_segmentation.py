@@ -118,7 +118,7 @@ def train(cfg):
         loss_func = make_loss(cfg)
 
         # create logger
-        logger = make_logger(cfg)
+        file_logger, tb_logger = make_logger(cfg)
 
         do_train(
         cfg,
@@ -127,14 +127,14 @@ def train(cfg):
         val_loader,
         optimizer,
         loss_func,
-        logger)
+        file_logger)
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="US3D Segmentation training")
+    parser = argparse.ArgumentParser(description="Segmentation training")
 
     parser.add_argument(
-        "--config_file", default="/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/delineation/configs/blood_vessels_synthetic_segmentation.yml", help="path to config file", type=str
+        "--config_file", default="/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/delineation/configs/blood_vessels_segmentation.yml", help="path to config file", type=str
     )
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
