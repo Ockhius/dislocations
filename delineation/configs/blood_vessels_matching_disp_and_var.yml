@@ -27,7 +27,7 @@ TRAINING:
 
   RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation/150_segmentor.tar,'
   START_EPOCH: 0
-  EPOCHS: 150
+  EPOCHS: 30
 
   BATCH_SIZE: 2
   TEST_BATCH_SIZE: 2
@@ -56,4 +56,4 @@ TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation/150_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_with_warp_edge_coeff/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation/150_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_disp_and_var/150_scmnet_light.tar'
