@@ -27,7 +27,7 @@ TRAINING:
 
   RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation/150_segmentor.tar,'
   START_EPOCH: 0
-  EPOCHS: 30
+  EPOCHS: 150
 
   BATCH_SIZE: 2
   TEST_BATCH_SIZE: 2
@@ -47,7 +47,7 @@ TRAINING:
   SEED: 42
   RESBLOCK_NUM: 2
   DISPBLOCK_NUM: 1
-  MAXDISP: 32
+  MAXDISP: 64
   DISPSPACE: 'two-sided'
   WIDTH: 512
   HEIGHT: 512

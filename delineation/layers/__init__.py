@@ -8,7 +8,7 @@ def make_loss(cfg):
         return binary_cross_entropy()
 
     if type == 'warp_only':
-        return smooth_l1_masked_disparity()
+        return warp_only()
 
     if type == 'smooth_l1_masked_disparity':
         return smooth_l1_masked_disparity()
