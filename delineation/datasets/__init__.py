@@ -3,7 +3,7 @@ from delineation.datasets.dislocation_dataset import DislocationDataset
 from delineation.datasets.dislocation_matching_dataset import MatchingDislocationsDataset
 
 
-def make_data_loader(cfg, save_representations= False):
+def make_data_loader(cfg, cfg_aug, save_representations= False):
 
     num_workers = cfg.TRAINING.NUM_WORKERS
 
@@ -19,8 +19,8 @@ def make_data_loader(cfg, save_representations= False):
 
     elif cfg.TRAINING.TRAINING_SET == 'dislocations_matching':
 
-        train_set = MatchingDislocationsDataset(cfg, train=True)
-        val_set = MatchingDislocationsDataset(cfg, train=False)
+        train_set = MatchingDislocationsDataset(cfg, cfg_aug, train=True)
+        val_set = MatchingDislocationsDataset(cfg, cfg_aug, train=False)
 
     else:
         raise NotImplementedError

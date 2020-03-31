@@ -108,10 +108,8 @@ class MatchingDislocationsDataset(Dataset):
         left_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
         right_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
 
-        if self.split=='train':
-
-            left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
-            right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+        left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+        right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
 
         left_disp_gt = np.array(Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['D'], self.l_images_path[idx])).convert('L'), dtype=np.float32)-127
 
@@ -122,15 +120,15 @@ class MatchingDislocationsDataset(Dataset):
         right_gt_img[right_gt_img < 128] = 0
         left_disp_gt[left_disp_gt==-127]=0
 
-        if self.split=='train' and self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
-
-            translation = np.random.randint(-10, 10)
-            num_rows, num_cols = np.array(left_img).shape
-
-            T = np.float32([[1, 0, translation], [0, 1, 0]])
-            right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
-            right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
-            left_disp_gt=left_disp_gt+translation
+        # if self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
+        #
+        #     translation = np.random.randint(-15,15)
+        #     num_rows, num_cols = np.array(left_img).shape
+        #
+        #     T = np.float32([[1, 0, translation], [0, 1, 0]])
+        #     right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
+        #     right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
+        #     left_disp_gt=left_disp_gt+translation
 
         left_img = np.array(left_img, dtype=np.float32) / 255.0
         right_img = np.array(right_img, dtype=np.float32) / 255.0

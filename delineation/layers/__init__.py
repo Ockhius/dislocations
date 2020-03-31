@@ -19,4 +19,8 @@ def make_loss(cfg):
     if type == 'smooth_l1_masked_disparity_and_bce':
         return smooth_l1_disparity_and_bce()
 
+    if type == 'smooth_l1_disparity_and_edge_warp_joint':
+        return smooth_l1_disparity_and_edge_warp_joint()
+
+
     return binary_cross_entropy()

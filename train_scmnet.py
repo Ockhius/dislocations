@@ -3,6 +3,8 @@ import time
 import os
 import sys
 import torch
+import yaml
+
 import torch.nn.functional as F
 
 from delineation.configs.defaults_segmentation import _C as cfg
@@ -136,9 +138,9 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
     print('full training time = %.2f HR' % ((time.time() - start_full_time) / 3600))
 
 
-def train(cfg):
+def train(cfg, cfg_aug):
     # create dataset
-    train_loader, val_loader = make_data_loader(cfg)
+    train_loader, val_loader = make_data_loader(cfg, cfg_aug)
 
     # create model
     seg_model, model = build_model_list(cfg, False)
@@ -171,6 +173,9 @@ if __name__ == '__main__':
         "--config_file", default="delineation/configs/blood_vessels_matching.yml", help="path to config file",
         type=str
     )
+
+    parser.add_argument('--path_ymlfile', type=str,default='delineation/configs/aug.yml', help='Path to yaml file.')
+
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
 
@@ -181,6 +186,12 @@ if __name__ == '__main__':
 
     cfg.merge_from_list(args.opts)
 
+
+    opt = parser.parse_args()
+
+    with open(opt.path_ymlfile, 'r') as ymlfile:
+        cfg_aug = yaml.load(ymlfile)
+
     _device = settings.initialize_cuda_and_logging(cfg)  # '_device' is GLOBAL VAR
 
-    train(cfg)
+    train(cfg, cfg_aug)

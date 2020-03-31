@@ -3,86 +3,123 @@ import time
 import os
 import sys
 import torch
+import yaml
+
 import torch.nn.functional as F
 
 from delineation.configs.defaults_segmentation import _C as cfg
 from delineation.utils import settings, cost_volume_helpers
-from delineation.models import build_model
+from delineation.models import build_model_list
 from delineation.layers import make_loss
 from delineation.solver import make_optimizer
 from delineation.datasets import make_data_loader
 from delineation.logger import make_logger
+from delineation.utils.settings import evaluate_results
 
 sys.path.append(".")
 
+def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
 
-def do_validate(model, val_loader, loss_func):
-
+    seg_model.eval()
     model.eval()
     total_test_loss = 0
+    pix1_err_m, pix3_err_m, pix5_err_m, epe_m, count = 0, 0, 0, 0, 0
 
-    indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, cfg.TEST.BATCH_SIZE,
-                                                 cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
-    for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(val_loader):
+    for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
+        indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
+                                                     cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
         with torch.no_grad():
-            l, r, lgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), dlgt.to(_device)
+            l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
 
-            dl_scores, sl = model(l, r)
-            dl = F.softmax(-dl_scores, 2)
-            dl = torch.sum(dl.mul(indices[:len(l), :, :, :]), 2) - cfg.TRAINING.MAXDISP  # CHECK HERE AGAIN !
+            l_seg, l_segmap = seg_model(l)
+            r_seg, r_segmap = seg_model(r)
 
-            loss, _, _ = loss_func(dl, dlgt, sl, lgt)
+            dl_scores = model(l_segmap, r_segmap)
+            dl_ = F.softmax(-dl_scores, 2)
+            dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
-            total_test_loss += float(loss)
+            mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
+            mask = mask.unsqueeze(1).detach()
+
+
+            loss = loss_func(dl, r_seg, l_seg, dlgt, lgt, rgt)
+            loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
+            total_test_loss += loss.item()
+
+            for i in range(0, len(dlgt)):
+                pix1_err, pix3_err, pix5_err, epe = evaluate_results(dlgt[i], dl[i], lgt[i])
+
+                pix1_err_m += pix1_err
+                pix3_err_m += pix3_err
+                pix5_err_m += pix5_err
+                epe_m += epe
+                count += 1
+
+    values = pix1_err_m / count, pix3_err_m / count, pix5_err_m / count, epe_m / count
+    tf_logger.add_scalars_to_tensorboard('Test', epoch, epoch, total_test_loss / len(val_loader), values)
+    print('Mean per dataset: {}, {}, {}, {}'.format(pix1_err_m / count, pix3_err_m / count, pix5_err_m / count, epe_m / count))
 
     model.train()
-
+    seg_model.train()
     return total_test_loss / len(val_loader)
 
 
-def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger):
+def compute_variance(dl, dl_prob, indices, mask):
+    var = torch.sum(torch.pow((indices - dl.unsqueeze(1).unsqueeze(1)), 2).mul(dl_prob), 2)
+    return var[mask].mean()
+
+def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_func, logger, tf_logger):
     start_full_time = time.time()
+    seg_model.train()
     model.train()
 
     start_epoch, end_epoch = cfg.TRAINING.START_EPOCH, cfg.TRAINING.EPOCHS
 
-    indices = cost_volume_helpers.volume_indices(2*cfg.TRAINING.MAXDISP, cfg.TRAINING.BATCH_SIZE,
-                                                 cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
-
+    iter_count = 0
     for epoch in range(start_epoch, end_epoch + 1):
         print('This is %d-th epoch' % epoch)
         total_train_loss = 0
 
-        for batch_idx, (l, r, lgt, _, dlgt, l_name) in enumerate(train_loader):
+        for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(train_loader):
+
+            indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
+                                                         cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
             start_time = time.time()
 
+            l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
             optimizer.zero_grad()
 
-            l, r, lgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), dlgt.to(_device)
+            l_seg, l_segmap = seg_model(l)
+            r_seg, r_segmap = seg_model(r)
 
-            dl_scores, sl = model(l, r)
-            dl = F.softmax(-dl_scores, 2)
-            dl = torch.sum(dl.mul(indices[:len(l), :, :, :]), 2) - cfg.TRAINING.MAXDISP
+            dl_scores = model(l_segmap, r_segmap)
+            dl_ = F.softmax(-dl_scores, 2)
+            dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
-            loss, loss_dl, loss_sl = loss_func(dl, dlgt, sl, lgt)
+            mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
+            mask = mask.unsqueeze(1).detach()
+
+            loss = loss_func(dl, r_seg, l_seg, dlgt, lgt, rgt)
+            if cfg.TRAINING.WITH_VAR_LOSS:
+                loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
 
             loss.backward()
+
             optimizer.step()
 
-            print('Iter %d '
-                  'training loss = %.3f '
-                  'disp loss = %.3f '
-                  'seg loss = %.3f '
-                  'time = %.2f' % (batch_idx, loss.item(), loss_dl.item(), loss_sl.item(), time.time() - start_time))
+            print('Iter %d training loss = %.3f , time = %.2f' % (batch_idx, loss.item(), time.time() - start_time))
             total_train_loss += float(loss)
+
+            tf_logger.add_loss_to_tensorboard('Train/Loss', loss.item(),iter_count )
+            iter_count+=1
 
         print('epoch %d total training loss = %.3f' % (epoch, total_train_loss / len(train_loader)))
 
         if epoch % cfg.LOGGING.LOG_INTERVAL == 0:
-            total_test_loss = do_validate(model, val_loader, loss_func)
+            total_test_loss = do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger)
             logger.log_string('test loss for epoch {} : {}\n'.format(epoch, total_test_loss))
             print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
 
@@ -100,30 +137,31 @@ def do_train(cfg, model, train_loader, val_loader, optimizer, loss_func, logger)
     print('full training time = %.2f HR' % ((time.time() - start_full_time) / 3600))
 
 
-def train(cfg):
+def train(cfg, cfg_aug):
     # create dataset
-    train_loader, val_loader = make_data_loader(cfg)
+    train_loader, val_loader = make_data_loader(cfg, cfg_aug)
 
     # create model
-    model = build_model(cfg)
+    seg_model, model = build_model_list(cfg, False)
 
     # create optimizer
-    optimizer = make_optimizer(cfg, model)
+    optimizer = make_optimizer(cfg, [seg_model, model])
 
     # create loss
     loss_func = make_loss(cfg)
 
     # create logger
-    logger = make_logger(cfg)
+    logger, tf_logger = make_logger(cfg)
 
     do_train(
         cfg,
+        seg_model,
         model,
         train_loader,
         val_loader,
         optimizer,
         loss_func,
-        logger)
+        logger, tf_logger)
 
 
 if __name__ == '__main__':
@@ -131,9 +169,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
 
     parser.add_argument(
-        "--config_file", default="delineation/configs/dislocation_matching_seg_joint_home.yml", help="path to config file",
+        "--config_file", default="delineation/configs/dislocation_matching_disp_and_warp_and var_joint.yml", help="path to config file",
         type=str
     )
+
+    parser.add_argument('--path_ymlfile', type=str,default='delineation/configs/aug.yml', help='Path to yaml file.')
+
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
 
@@ -144,6 +185,12 @@ if __name__ == '__main__':
 
     cfg.merge_from_list(args.opts)
 
+
+    opt = parser.parse_args()
+
+    with open(opt.path_ymlfile, 'r') as ymlfile:
+        cfg_aug = yaml.load(ymlfile)
+
     _device = settings.initialize_cuda_and_logging(cfg)  # '_device' is GLOBAL VAR
 
-    train(cfg)
+    train(cfg, cfg_aug)
