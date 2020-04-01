@@ -6,6 +6,7 @@ import torch
 import os
 import matplotlib.pyplot as plt
 import random
+from imgaug import augmenters as iaa
 
 from delineation.configs.defaults_segmentation import _C as cfg
 from delineation.datasets import data_augmentation as data_aug
@@ -110,6 +111,9 @@ class MatchingDislocationsDataset(Dataset):
 
         if self.split=='train':
 
+            left_img = np.array(left_img, dtype=np.float32) / 255.0
+            right_img = np.array(right_img, dtype=np.float32) / 255.0
+
             left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
             right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
 
@@ -140,7 +144,6 @@ class MatchingDislocationsDataset(Dataset):
 
         if np.max(right_gt_img) > 1:
             right_gt_img = right_gt_img / 255.0
-
 
         left_img = torch.from_numpy(left_img).float().unsqueeze(0)
         right_img = torch.from_numpy(right_img).float().unsqueeze(0)

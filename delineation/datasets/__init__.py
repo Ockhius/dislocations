@@ -1,6 +1,7 @@
 import torch
 from delineation.datasets.dislocation_dataset import DislocationDataset
 from delineation.datasets.dislocation_matching_dataset import MatchingDislocationsDataset
+from delineation.datasets.dislocation_matching_dataset_aug import MatchingDislocationsDataset as MatchingDislocationsDatasetAug
 
 
 def make_data_loader(cfg, cfg_aug, save_representations= False):
@@ -16,6 +17,12 @@ def make_data_loader(cfg, cfg_aug, save_representations= False):
 
         train_set = DislocationDataset(cfg, train=True, save_representations = False)
         val_set   = DislocationDataset(cfg, train=False, save_representations = False)
+
+
+    elif cfg.TRAINING.TRAINING_SET == 'dislocations_matching' and 'joint' in cfg.TRAINING.LOSS:
+
+        train_set = MatchingDislocationsDatasetAug(cfg, cfg_aug, train=True)
+        val_set = MatchingDislocationsDatasetAug(cfg, cfg_aug, train=False)
 
     elif cfg.TRAINING.TRAINING_SET == 'dislocations_matching':
 

@@ -6,6 +6,7 @@ import torch
 import os
 import matplotlib.pyplot as plt
 import random
+from imgaug import augmenters as iaa
 
 from delineation.configs.defaults_segmentation import _C as cfg
 from delineation.datasets import data_augmentation as data_aug
@@ -108,8 +109,44 @@ class MatchingDislocationsDataset(Dataset):
         left_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
         right_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
 
-        left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
-        right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+        l_aug, r_aug, l_gt_aug, r_gt_aug = left_img.copy(), right_img.copy(), left_gt_img.copy(), right_gt_img.copy()
+
+        if self.split=='train':
+
+            r = random.randint(0, 100000)
+
+            if (random.randint(0, 2) == 1):
+                scaler = iaa.Affine(scale={"x": (0.7, 1.2)}, mode='reflect', random_state=r, deterministic=True)
+                l_aug = scaler.augment_image(np.array(l_aug))
+                l_gt_aug = scaler.augment_image(np.array(l_gt_aug))
+
+            if (random.randint(0, 1) == 1):
+                brightness = iaa.Multiply((0.8, 1.2))
+                l_aug = brightness.augment_image(np.array(l_aug))
+                r_aug = brightness.augment_image(np.array(r_aug))
+
+            if (random.randint(0, 1) == 1):
+                rotate = iaa.Affine(rotate=(-60, 60), mode='reflect', random_state=r, deterministic=True)
+                l_aug = rotate.augment_image(np.array(left_img))
+                l_gt_aug = rotate.augment_image(np.array(l_gt_aug))
+
+            left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+            right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+
+        left_img = np.array(left_img, dtype=np.float32) / 255.0
+        right_img = np.array(right_img, dtype=np.float32) / 255.0
+
+        l_aug = np.array(l_aug, dtype=np.float32) / 255.0
+        r_aug = np.array(r_aug, dtype=np.float32) / 255.0
+
+        l_gt_aug = np.array(l_gt_aug, dtype=np.float32)
+        r_gt_aug = np.array(r_gt_aug, dtype=np.float32)
+
+        l_gt_aug[l_gt_aug < 128] = 0
+        r_gt_aug[r_gt_aug < 128] = 0
+
+        if np.max(l_gt_aug) > 1: l_gt_aug = l_gt_aug / 255.0
+        if np.max(r_gt_aug) > 1:  r_gt_aug = r_gt_aug / 255.0
 
         left_disp_gt = np.array(Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['D'], self.l_images_path[idx])).convert('L'), dtype=np.float32)-127
 
@@ -120,15 +157,15 @@ class MatchingDislocationsDataset(Dataset):
         right_gt_img[right_gt_img < 128] = 0
         left_disp_gt[left_disp_gt==-127]=0
 
-        # if self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
-        #
-        #     translation = np.random.randint(-15,15)
-        #     num_rows, num_cols = np.array(left_img).shape
-        #
-        #     T = np.float32([[1, 0, translation], [0, 1, 0]])
-        #     right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
-        #     right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
-        #     left_disp_gt=left_disp_gt+translation
+        if self.split=='train' and self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
+
+            translation = np.random.randint(-10, 10)
+            num_rows, num_cols = np.array(left_img).shape
+
+            T = np.float32([[1, 0, translation], [0, 1, 0]])
+            right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
+            right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
+            left_disp_gt=left_disp_gt+translation
 
         left_img = np.array(left_img, dtype=np.float32) / 255.0
         right_img = np.array(right_img, dtype=np.float32) / 255.0
@@ -145,8 +182,12 @@ class MatchingDislocationsDataset(Dataset):
         left_seg_img = torch.from_numpy(left_gt_img).float().unsqueeze(0)
         right_seg_img = torch.from_numpy(right_gt_img).float().unsqueeze(0)
 
-        return [left_img, right_img, left_seg_img, right_seg_img, left_disp_gt, self.l_images_path[idx]]
+        l_aug = torch.from_numpy(l_aug).float().unsqueeze(0)
+        r_aug = torch.from_numpy(r_aug).float().unsqueeze(0)
+        l_gt_aug = torch.from_numpy(l_gt_aug).float().unsqueeze(0)
+        r_gt_aug = torch.from_numpy(r_gt_aug).float().unsqueeze(0)
 
+        return [l_aug, r_aug, l_gt_aug, r_gt_aug, left_img, right_img, left_seg_img, right_seg_img, left_disp_gt, self.l_images_path[idx]]
 
 if __name__ == '__main__':
 

@@ -100,10 +100,13 @@ class smooth_l1_disparity_and_edge_warp_joint(torch.nn.Module):
 
         self.bce_logits = torch.nn.BCEWithLogitsLoss()
 
-    def forward(self, dl, seg_r, seg_l, dlgt, lgt, rgt):
+    def forward(self, l_aug, r_aug, l_gt_aug, r_gt_aug, dl, seg_r, seg_l, dlgt, lgt, rgt):
 
-        loss_seg = 0.5 * bce_segmentation_loss(seg_l, lgt) \
+        loss_seg1 = 0.5 * bce_segmentation_loss(seg_l, lgt) \
                + 0.5 * bce_segmentation_loss(seg_r, rgt)
+
+        loss_seg = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
+               + 0.5 * bce_segmentation_loss(r_aug, r_gt_aug)
 
         mask = lgt > 0
         recon_l =  F.sigmoid(warp(seg_r, dl))
@@ -113,7 +116,7 @@ class smooth_l1_disparity_and_edge_warp_joint(torch.nn.Module):
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
         _loss[torch.isnan(_loss)] = 0
 
-        return loss_seg+_loss+ 0.5*_loss_recon
+        return 0.75*loss_seg+0.25*loss_seg1+_loss+ 0.5*_loss_recon
 
 class smooth_l1_disparity(torch.nn.Module):
     def __init__(self):
