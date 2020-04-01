@@ -26,15 +26,19 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
     pix1_err_m, pix3_err_m, pix5_err_m, epe_m, count = 0, 0, 0, 0, 0
 
 
-    for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
+    for batch_idx, (l_aug, r_aug, l_gt_aug, r_gt_aug, l, r, lgt, rgt, dlgt, l_name) in enumerate(val_loader):
         indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
                                                      cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
         with torch.no_grad():
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
+            l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
 
             l_seg, l_segmap = seg_model(l)
             r_seg, r_segmap = seg_model(r)
+
+            l_seg_aug, _ = seg_model(l_aug)
+            r_seg_aug, _ = seg_model(r_aug)
 
             dl_scores = model(l_segmap, r_segmap)
             dl_ = F.softmax(-dl_scores, 2)
@@ -43,8 +47,7 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
             mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
             mask = mask.unsqueeze(1).detach()
 
-
-            loss = loss_func(dl, r_seg, l_seg, dlgt, lgt, rgt)
+            loss = loss_func(l_seg_aug, r_seg_aug, l_gt_aug, r_gt_aug, dl, r_seg, l_seg, dlgt, lgt, rgt)
             loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
             total_test_loss += loss.item()
 
@@ -82,18 +85,22 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
         print('This is %d-th epoch' % epoch)
         total_train_loss = 0
 
-        for batch_idx, (l, r, lgt, rgt, dlgt, l_name) in enumerate(train_loader):
+        for batch_idx, (l_aug, r_aug, l_gt_aug, r_gt_aug, l, r, lgt, rgt, dlgt, l_name) in enumerate(train_loader):
 
             indices = cost_volume_helpers.volume_indices(2 * cfg.TRAINING.MAXDISP, len(l),
                                                          cfg.TRAINING.HEIGHT, cfg.TRAINING.WIDTH, _device)
 
             start_time = time.time()
 
+            l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
             optimizer.zero_grad()
 
             l_seg, l_segmap = seg_model(l)
             r_seg, r_segmap = seg_model(r)
+
+            l_seg_aug, _ = seg_model(l_aug)
+            r_seg_aug, _ = seg_model(r_aug)
 
             dl_scores = model(l_segmap, r_segmap)
             dl_ = F.softmax(-dl_scores, 2)
@@ -102,7 +109,7 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
             mask = mask.unsqueeze(1).detach()
 
-            loss = loss_func(dl, r_seg, l_seg, dlgt, lgt, rgt)
+            loss = loss_func(l_seg_aug, r_seg_aug, l_gt_aug, r_gt_aug, dl, r_seg, l_seg, dlgt, lgt, rgt)
             if cfg.TRAINING.WITH_VAR_LOSS:
                 loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
 
@@ -125,12 +132,19 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
 
         if epoch % cfg.TRAINING.SAVE_MODEL_STEP == 0:
             savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_scmnet_light.tar')
+            savefilename_seg = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_seg.tar')
 
             torch.save({
                 'epoch': epoch,
                 'state_dict': model.state_dict(),
                 'train_loss': total_train_loss / len(train_loader.dataset),
             }, savefilename)
+
+            torch.save({
+                'epoch': epoch,
+                'state_dict': seg_model.state_dict(),
+                'train_loss': total_train_loss / len(train_loader.dataset),
+            }, savefilename_seg)
 
             print('model is saved: {} - {}'.format(epoch, savefilename))
 
