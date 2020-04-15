@@ -261,8 +261,8 @@ if __name__ == '__main__':
 
     parser.add_argument('--path_to_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics/', help='Path to labeled data.')
     parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/', help='Path to save datasets')
-    parser.add_argument('--IMG_W', type=int, default=500, help='image width')
-    parser.add_argument('--IMG_H', type=int, default=500, help='image height')
+    parser.add_argument('--IMG_W', type=int, default=512, help='image width')
+    parser.add_argument('--IMG_H', type=int, default=512, help='image height')
     parser.add_argument('--intermediate_keypoints', type=int, default=300, help='amount of intermediate keypoints')
 
     args = parser.parse_args()
