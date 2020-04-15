@@ -112,11 +112,11 @@ class MatchingDislocationsDataset(Dataset):
         l_aug, r_aug, l_gt_aug, r_gt_aug = left_img.copy(), right_img.copy(), left_gt_img.copy(), right_gt_img.copy()
 
         if self.split=='train':
-
+        # #
             r = random.randint(0, 100000)
 
-            if (random.randint(0, 2) == 1):
-                scaler = iaa.Affine(scale={"x": (0.7, 1.2)}, mode='reflect', random_state=r, deterministic=True)
+            if (random.randint(0, 1) == 1):
+                scaler = iaa.Affine(scale={"x": (0.8, 1.2)}, mode='reflect', random_state=r, deterministic=True)
                 l_aug = scaler.augment_image(np.array(l_aug))
                 l_gt_aug = scaler.augment_image(np.array(l_gt_aug))
 
@@ -126,12 +126,19 @@ class MatchingDislocationsDataset(Dataset):
                 r_aug = brightness.augment_image(np.array(r_aug))
 
             if (random.randint(0, 1) == 1):
-                rotate = iaa.Affine(rotate=(-60, 60), mode='reflect', random_state=r, deterministic=True)
+                rotate = iaa.Affine(rotate=(-45, 45), mode='reflect', random_state=r, deterministic=True)
                 l_aug = rotate.augment_image(np.array(left_img))
                 l_gt_aug = rotate.augment_image(np.array(l_gt_aug))
-
+        #
             left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
             right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+
+            l_aug, _ = self.apply_augmentations(np.array(l_aug, dtype=np.float32),
+                                                                     self.cfg_aug['TRAINING']['AUGMENTATION'],
+                                                                     seed=seed * (idx + 1))
+            r_aug, _ = self.apply_augmentations(np.array(r_aug, dtype=np.float32),
+                                                                      self.cfg_aug['TRAINING']['AUGMENTATION'],
+                                                                      seed=seed * (idx + 1))
 
         left_img = np.array(left_img, dtype=np.float32) / 255.0
         right_img = np.array(right_img, dtype=np.float32) / 255.0
@@ -159,16 +166,13 @@ class MatchingDislocationsDataset(Dataset):
 
         if self.split=='train' and self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
 
-            translation = np.random.randint(-10, 10)
+            translation = np.random.randint(-8, 8)
             num_rows, num_cols = np.array(left_img).shape
 
             T = np.float32([[1, 0, translation], [0, 1, 0]])
             right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
             right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
             left_disp_gt=left_disp_gt+translation
-
-        left_img = np.array(left_img, dtype=np.float32) / 255.0
-        right_img = np.array(right_img, dtype=np.float32) / 255.0
 
         if np.max(left_gt_img) > 1:
             left_gt_img = left_gt_img / 255.0

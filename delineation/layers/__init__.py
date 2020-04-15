@@ -10,8 +10,14 @@ def make_loss(cfg):
     if type == 'warp_only':
         return warp_only()
 
+    if type == 'warp_only_joint':
+        return warp_only_joint()
+
     if type == 'smooth_l1_masked_disparity':
         return smooth_l1_masked_disparity()
+
+    if type == 'smooth_l1_masked_disparity_joint':
+        return smooth_l1_masked_disparity_joint()
 
     if type == 'smooth_l1_disparity_and_edge_warp':
         return smooth_l1_disparity_and_edge_warp()

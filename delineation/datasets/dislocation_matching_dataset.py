@@ -18,7 +18,7 @@ class MatchingDislocationsDataset(Dataset):
 
         self.root_dir = cfg.INPUT.SOURCE
         self.transform = transform
-        self.split = 'train' if train else 'test'
+        self.split = 'train' if train else 'test' #'test_2020_04'
         #cfg file for augmentations
         self.cfg_aug = cfg_aug
 
@@ -109,13 +109,18 @@ class MatchingDislocationsDataset(Dataset):
         left_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_L'], self.l_images_path[idx])).convert('L')
         right_gt_img = Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['S_R'], self.l_images_path[idx].replace('LEFT','RIGHT'))).convert('L')
 
-        if self.split=='train':
+        left_img = np.array(left_img, dtype=np.float32)
+        right_img = np.array(right_img, dtype=np.float32)
+        left_gt_img = np.array(left_gt_img, dtype=np.float32)
+        right_gt_img = np.array(right_gt_img, dtype=np.float32)
 
-            left_img = np.array(left_img, dtype=np.float32) / 255.0
-            right_img = np.array(right_img, dtype=np.float32) / 255.0
+        if self.split=='train':
 
             left_img, image1_preprocessed = self.apply_augmentations(np.array(left_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
             right_img, image1_preprocessed = self.apply_augmentations(np.array(right_img, dtype=np.float32), self.cfg_aug['TRAINING']['AUGMENTATION'], seed=seed * (idx + 1))
+
+            left_img = np.array(left_img, dtype=np.float32) / 255.0
+            right_img = np.array(right_img, dtype=np.float32) / 255.0
 
         left_disp_gt = np.array(Image.open(os.path.join(self.root_dir, self.split, self.subset_folders['D'], self.l_images_path[idx])).convert('L'), dtype=np.float32)-127
 
@@ -135,9 +140,6 @@ class MatchingDislocationsDataset(Dataset):
             right_img = cv2.warpAffine(np.array(right_img), T, (num_cols, num_rows))
             right_gt_img = cv2.warpAffine(np.array(right_gt_img), T, (num_cols, num_rows))
             left_disp_gt=left_disp_gt+translation
-
-        left_img = np.array(left_img, dtype=np.float32) / 255.0
-        right_img = np.array(right_img, dtype=np.float32) / 255.0
 
         if np.max(left_gt_img) > 1:
             left_gt_img = left_gt_img / 255.0

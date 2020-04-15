@@ -31,7 +31,6 @@ class binary_cross_entropy(torch.nn.Module):
         _loss = 0.5 * self.left_bce_logits(seg_l, lgt) + 0.5 * self.right_bce_logits(seg_r, rgt)
         return _loss
 
-
 class smooth_l1_masked_disparity(torch.nn.Module):
     def __init__(self):
 
@@ -71,6 +70,77 @@ class warp_only(torch.nn.Module):
 
         return _loss_recon
 
+class warp_only_joint(torch.nn.Module):
+    def __init__(self):
+
+        super().__init__()
+
+        self.bce_logits = torch.nn.BCEWithLogitsLoss()
+
+    def forward(self, l_aug, r_aug, l_gt_aug, r_gt_aug, dl, seg_r, seg_l, dlgt, lgt, rgt):
+
+        loss_seg1 = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
+               + 0.5 * bce_segmentation_loss(r_aug, l_gt_aug)
+
+        mask = lgt > 0
+        recon_l =  F.sigmoid(warp(seg_r, dl))
+
+        recon_l = recon_l*mask
+
+        _loss_recon = F.smooth_l1_loss(recon_l[mask], lgt[mask], reduction='mean')
+
+        return 0.5*loss_seg1 + _loss_recon
+
+class smooth_l1_masked_disparity_joint(torch.nn.Module):
+    def __init__(self):
+
+        super().__init__()
+
+    def forward(self, l_aug, r_aug, l_gt_aug, r_gt_aug, dl, seg_r, seg_l, dlgt, lgt, rgt):
+
+        loss_seg1 = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
+               + 0.5 * bce_segmentation_loss(r_aug, l_gt_aug)
+
+        mask = lgt > 0
+        print('Max: {} Min: {}'.format(dlgt.unsqueeze(1)[mask].max(),
+                                       dlgt.unsqueeze(1)[mask].min()))
+
+        print('Predicted Max: {} Min: {}'.format(dl[mask].max(),
+                                       dl[mask].min()))
+
+        print(dl[mask].squeeze()[0:10])
+        print(dlgt.unsqueeze(1)[mask].squeeze()[0:10])
+
+        _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
+        _loss[torch.isnan(_loss)] = 0
+
+        return 0.5*loss_seg1+ _loss
+
+
+
+class smooth_l1_disparity_and_edge_warp_joint(torch.nn.Module):
+
+    def __init__(self):
+
+        super().__init__()
+
+        self.bce_logits = torch.nn.BCEWithLogitsLoss()
+
+    def forward(self, l_aug, r_aug, l_gt_aug, r_gt_aug, dl, seg_r, seg_l, dlgt, lgt, rgt):
+
+        loss_seg1 = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
+               + 0.5 * bce_segmentation_loss(r_aug, l_gt_aug)
+
+        mask = lgt > 0
+        recon_l =  F.sigmoid(warp(seg_r, dl))
+        recon_l = recon_l*mask
+        _loss_recon = F.smooth_l1_loss(recon_l[mask], lgt[mask], reduction='mean')
+
+        _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
+        _loss[torch.isnan(_loss)] = 0
+
+        return 0.5*loss_seg1+_loss+ 0.5*_loss_recon
+
 class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
     def __init__(self):
 
@@ -93,30 +163,6 @@ class smooth_l1_disparity_and_edge_warp(torch.nn.Module):
 
         return _loss+ 0.5*_loss_recon
 
-class smooth_l1_disparity_and_edge_warp_joint(torch.nn.Module):
-    def __init__(self):
-
-        super().__init__()
-
-        self.bce_logits = torch.nn.BCEWithLogitsLoss()
-
-    def forward(self, l_aug, r_aug, l_gt_aug, r_gt_aug, dl, seg_r, seg_l, dlgt, lgt, rgt):
-
-        loss_seg1 = 0.5 * bce_segmentation_loss(seg_l, lgt) \
-               + 0.5 * bce_segmentation_loss(seg_r, rgt)
-
-        loss_seg = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
-               + 0.5 * bce_segmentation_loss(r_aug, r_gt_aug)
-
-        mask = lgt > 0
-        recon_l =  F.sigmoid(warp(seg_r, dl))
-        recon_l = recon_l*mask
-        _loss_recon = F.smooth_l1_loss(recon_l[mask], lgt[mask], reduction='mean')
-
-        _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
-        _loss[torch.isnan(_loss)] = 0
-
-        return 0.75*loss_seg+0.25*loss_seg1+_loss+ 0.5*_loss_recon
 
 class smooth_l1_disparity(torch.nn.Module):
     def __init__(self):
