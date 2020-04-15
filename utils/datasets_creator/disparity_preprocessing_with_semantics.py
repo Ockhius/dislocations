@@ -4,7 +4,9 @@ import numpy as np
 import cv2
 from PIL import Image
 
-subsets = ['train', 'test']
+import argparse
+
+subsets = ['train', 'test','test_2020_04']
 
 subset_folders = ['disparity',
                   'left_image',
@@ -17,37 +19,31 @@ def create_dataset_folders(save_resized_dataset_path):
     for subset in subsets:
         for folder in subset_folders:
             sub_path = os.path.join(save_resized_dataset_path, subset, folder)
-            if not os.path.exists(sub_path):
-                os.makedirs(sub_path)
+            if not os.path.exists(sub_path):  os.makedirs(sub_path)
 
 def do_intermediate_keypoints(p1, p2, n_points=20):
 
-    x_spacing = (p2[0] - p1[0]) / (n_points + 1)
-    y_spacing = (p2[1] - p1[1]) / (n_points + 1)
-
-    return [[p1[0] + i * x_spacing, p1[1] + i * y_spacing]
-            for i in range(1, n_points + 1)]
+    x_spacing, y_spacing = (p2[0] - p1[0]) / (n_points + 1), (p2[1] - p1[1]) / (n_points + 1)
+    return [[p1[0] + i * x_spacing, p1[1] + i * y_spacing]  for i in range(1, n_points + 1)]
 
 def resize_keypoint(kp1, old_w, old_h, new_w, new_h):
-    kp1 = kp1.copy()
-    kp1[0] = (kp1[0]/old_w)*new_w
-    kp1[1] = (kp1[1]/old_h)*new_h
 
-    return kp1
+    kp_resized = kp1.copy()
+    kp_resized[0], kp_resized[1] = (kp_resized[0] / old_w) * new_w, (kp_resized[1] / old_h) * new_h
+
+    return kp_resized
 
 def resize_images(path_to_images, b_json, d_json, IMG_W, IMG_H):
 
-    b_img_path = path_to_images + '/' + os.path.basename(b_json).replace('json', 'png')
-    d_img_path = path_to_images + '/' + os.path.basename(d_json).replace('json', 'png')
+    left_image_path = os.path.join(path_to_images, os.path.basename(b_json).replace('json', 'png'))
+    right_image_path = os.path.join(path_to_images, os.path.basename(d_json).replace('json', 'png'))
 
-    b_image, d_image = Image.open(b_img_path), Image.open(d_img_path)
+    left_image, right_image = Image.open(left_image_path), Image.open(right_image_path)
 
-    width_b ,height_b = b_image.size
+    width_b ,height_b = left_image.size
+    left_image, right_image = left_image.resize((IMG_W, IMG_H)), right_image.resize((IMG_W, IMG_H))
 
-    b_image = b_image.resize((IMG_W, IMG_H))
-    d_image = d_image.resize((IMG_W, IMG_H))
-
-    return b_image, d_image, width_b ,height_b
+    return left_image, right_image, width_b ,height_b
 
 
 def generate_path_to_save_image(path_to_save_images, subset, folder, pair, path_to_json_b):
@@ -96,42 +92,42 @@ def seg_generator(all_dislocation_points, gen_images, indx):
 
 def disp_generator(all_dislocation_points, gen_images, disp, indx):
 
-    for idx, disloc in enumerate(all_dislocation_points):
+    for idx, disl in enumerate(all_dislocation_points):
 
             for i in range(0,2):
                 for j in range(0,2):
                     try:
-                        gen_images[indx][int(disloc[1]) + i, int(disloc[0]) - j]  = -disp[idx][0].round() + 127
-                        gen_images[indx][int(disloc[1]) - i, int(disloc[0]) + j]  = -disp[idx][0].round() + 127
-                        gen_images[indx][int(disloc[1]) + i, int(disloc[0]) + j]  = -disp[idx][0].round() + 127
-                        gen_images[indx][int(disloc[1]) - i, int(disloc[0]) - j]  = -disp[idx][0].round() + 127
+                        gen_images[indx][int(disl[1]) + i, int(disl[0]) - j]  = -disp[idx][0].round() + 127
+                        gen_images[indx][int(disl[1]) - i, int(disl[0]) + j]  = -disp[idx][0].round() + 127
+                        gen_images[indx][int(disl[1]) + i, int(disl[0]) + j]  = -disp[idx][0].round() + 127
+                        gen_images[indx][int(disl[1]) - i, int(disl[0]) - j]  = -disp[idx][0].round() + 127
                     except Exception as ex:
                         continue
     return gen_images
 
 
-def generate_segmentation_images(all_disloc_points_img_b, all_disloc_points_img_d):
+def generate_segmentation_images(all_disl_points_img_b, all_disl_points_img_d, IMG_H, IMG_W):
 
     generated_segmentation = [np.zeros((IMG_H, IMG_W,1), np.uint8) for i in range(0,2)]
 
-    seg_generator(all_disloc_points_img_b, generated_segmentation, 0)
-    seg_generator(all_disloc_points_img_d, generated_segmentation, 1)
+    seg_generator(all_disl_points_img_b, generated_segmentation, 0)
+    seg_generator(all_disl_points_img_d, generated_segmentation, 1)
 
     return generated_segmentation
 
-def generate_disparity_images(all_disloc_points_img_b, all_disloc_points_img_d):
+def generate_disparity_images(all_disloc_points_left_img, all_disloc_points_right_img, IMG_H, IMG_W):
 
     generated_disparity = [np.zeros((IMG_H, IMG_W,1), np.uint8) for i in range(0,2)]
 
-    disp_l = np.array(all_disloc_points_img_b) - np.array(all_disloc_points_img_d)
-    disp_r = np.array(all_disloc_points_img_d) - np.array(all_disloc_points_img_b)
+    disp_l = np.array(all_disloc_points_left_img) - np.array(all_disloc_points_right_img)
+    disp_r = np.array(all_disloc_points_right_img) - np.array(all_disloc_points_left_img)
 
-    disp_generator(all_disloc_points_img_b, generated_disparity, disp_l, 0)
-    disp_generator(all_disloc_points_img_d, generated_disparity, disp_r, 1)
+    disp_generator(all_disloc_points_left_img, generated_disparity, disp_l, 0)
+    disp_generator(all_disloc_points_right_img, generated_disparity, disp_r, 1)
 
     return generated_disparity
 
-def generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_segmentation,width_b ,height_b):
+def generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_segmentation,width_b ,height_b, IMG_H, IMG_W):
 
     with open(path_to_json_b) as f: img_b = json.load(f)
     with open(path_to_json_d) as f: img_d = json.load(f)
@@ -163,20 +159,18 @@ def generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_s
     return img_b_, img_d_
 
 def generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
-                                      width_b ,height_b, intermediate_keypoints):
+                                      width_b ,height_b, IMG_W, IMG_H, intermediate_keypoints):
 
     with open(path_to_json_b) as f: img_b = json.load(f)
     with open(path_to_json_d) as f: img_d = json.load(f)
 
-    all_dislocation_points_img_b, all_dislocation_points_img_d = [], []
+    all_disl_points_img_b, all_disl_points_img_d = [], []
 
     for idx, shapes in enumerate(img_b['shapes']):
 
         shape_b, shape_d = img_b['shapes'][idx]['points'], img_d['shapes'][idx]['points']
 
-        if 'stacking' in shapes['label'] or \
-                'grain' in shapes['label'] :
-            continue
+        if 'stacking' in shapes['label'] or  'grain' in shapes['label'] : continue
 
         all_points_for_dislocation_b, all_points_for_dislocation_d = [], []
         count = 0
@@ -205,12 +199,12 @@ def generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
             all_points_for_dislocation_d.extend(keypoints_for_line_d)
 
         all_points_for_dislocation_b, all_points_for_dislocation_d = np.array(all_points_for_dislocation_b), np.array(all_points_for_dislocation_d)
-        all_dislocation_points_img_b.extend(all_points_for_dislocation_b), all_dislocation_points_img_d.extend(all_points_for_dislocation_d)
+        all_disl_points_img_b.extend(all_points_for_dislocation_b), all_disl_points_img_d.extend(all_points_for_dislocation_d)
 
-    return all_dislocation_points_img_b, all_dislocation_points_img_d
+    return all_disl_points_img_b, all_disl_points_img_d
 
 
-def create_disparity_and_segmentation_images(subset, path_to_images, save_path, path_to_jsons):
+def create_disparity_and_segmentation_images(subset, path_to_images, save_path, path_to_jsons, IMG_W, IMG_H, intermediate_keypoints):
 
     jsons = [x for x in os.listdir(path_to_jsons) if '.json' in x]
 
@@ -225,32 +219,23 @@ def create_disparity_and_segmentation_images(subset, path_to_images, save_path, 
 
     pair = path_to_images.split('/')[-1]
 
-    check = True
-    for pair_ in test_pairs:
-        if pair_ in path_to_json_d:
-            subset = 'test'
-            check = False
-    if check:
-        subset = 'train'
-
-
     left_name, right_name = generate_path_to_save_image(save_path, subset, 'left_image', pair, path_to_json_b), \
                             generate_path_to_save_image(save_path, subset, 'right_image', pair, path_to_json_b)
 
     b_image.save(left_name), d_image.save(right_name)
 
     all_dislocation_points_img_b, all_dislocation_points_img_d = generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
-                                                                                                   width_b ,height_b, 300)
-    img_b_segmentation, img_d_segmentation = generate_segmentation_images(all_dislocation_points_img_b, all_dislocation_points_img_d)
+                                                                                                   width_b ,height_b, IMG_W, IMG_H, intermediate_keypoints)
+    img_b_segmentation, img_d_segmentation = generate_segmentation_images(all_dislocation_points_img_b, all_dislocation_points_img_d, IMG_W, IMG_H)
 
     # given preprocessed keypoints, generate images
 
     all_dislocation_points_img_b, all_dislocation_points_img_d = generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
-                                                                                                   width_b ,height_b, intermediate_keypoints)
+                                                                                                   width_b ,height_b, IMG_W, IMG_H, intermediate_keypoints)
 
-    disparity_img, disparity_img_r = generate_disparity_images(all_dislocation_points_img_b, all_dislocation_points_img_d)
+    disparity_img, disparity_img_r = generate_disparity_images(all_dislocation_points_img_b, all_dislocation_points_img_d, IMG_W, IMG_H)
 
-    img_b_segmentation, img_d_segmentation = generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_segmentation, width_b ,height_b)
+    img_b_segmentation, img_d_segmentation = generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_segmentation, width_b ,height_b, IMG_W, IMG_H)
     left_segmentation_name, \
     right_segmentation_name, \
     disparity_left = generate_path_to_save_image(save_path, subset, 'segmentation_left_image', pair, path_to_json_b), \
@@ -266,16 +251,24 @@ def create_disparity_and_segmentation_images(subset, path_to_images, save_path, 
 
 if __name__ == '__main__':
 
-    path_to_images = '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics/'
-    path_to_save_images = '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
 
-    subset = 'train'
+    parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
 
-    IMG_W, IMG_H = 512, 512
-    intermediate_keypoints = 300
+    parser.add_argument(
+        "--config_file", default="delineation/configs/blood_vessels_matching.yml", help="path to config file",
+        type=str
+    )
+
+    parser.add_argument('--path_to_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics/', help='Path to labeled data.')
+    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/', help='Path to save datasets')
+    parser.add_argument('--IMG_W', type=int, default=500, help='image width')
+    parser.add_argument('--IMG_H', type=int, default=500, help='image height')
+    parser.add_argument('--intermediate_keypoints', type=int, default=300, help='amount of intermediate keypoints')
+
+    args = parser.parse_args()
 
     test_pairs = ['1123', '1116', 'pairs_34', 'pairs_18_20',  'ant-B',
-                  'ant-D', 'ant2',  '2507 5 2BC5 ZA3 mag OA20',
+                  'ant-D', 'ant2','ant',  '2507 5 2BC5 ZA3 mag OA20',
                   'test1_semantics',  'test2_semantics',  'test3_semantics',
                   'test4', 'test5','test6',
                   '2019-12-02_TiAl_box3n15_zoom_1_2',
@@ -290,14 +283,24 @@ if __name__ == '__main__':
                   'TiAl_box3n15_pairs_n4_4']
 
     # create dataset structure of folders
-    create_dataset_folders(path_to_save_images)
+    create_dataset_folders(args.path_to_save_images)
 
     # iterate over folders to save resized dataset in the proper structure
-    folders = os.listdir(path_to_images)
+    folders = os.listdir(args.path_to_images)
 
     for folder in folders:
         if '.DS_Store'  in folder:  continue
-        path_images = os.path.join(path_to_images, folder)
-        path_to_jsons = os.path.join(path_to_images, folder, 'results')
+        path_images = os.path.join(args.path_to_images, folder)
+        path_to_jsons = os.path.join(args.path_to_images, folder, 'results')
 
-        create_disparity_and_segmentation_images(subset, path_images, path_to_save_images, path_to_jsons)
+        if folder in test_pairs:
+            subset = 'test'
+
+        elif '2020_04_15_pair' in folder:
+            subset = 'test_2020_04'
+
+        else:
+            subset = 'train'
+        print('Processing: {}'.format(folder))
+        create_disparity_and_segmentation_images(subset, path_images, args.path_to_save_images, path_to_jsons,
+                                                 args.IMG_W, args.IMG_H, args.intermediate_keypoints)
