@@ -11,12 +11,18 @@ from delineation.configs.defaults_segmentation import _C as cfg
 from delineation.utils import settings, cost_volume_helpers
 from delineation.models import build_model_list
 from delineation.layers import make_loss
-from delineation.solver import make_optimizer
+from delineation.solver import make_optimizer, make_scheduler
 from delineation.datasets import make_data_loader
 from delineation.logger import make_logger
 from delineation.utils.settings import evaluate_results
 
 sys.path.append(".")
+
+def adjust_learning_rate(optimizer, epoch):
+    """Sets the learning rate to the initial LR decayed by 10 every 40 epochs"""
+    lr = cfg.TRAINING.BASE_LR * (0.1 ** (epoch // 80))
+    for param_group in optimizer.param_groups:
+        param_group['lr'] = lr
 
 def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
 
@@ -34,20 +40,22 @@ def do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger):
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
             l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
 
-            l_seg, l_segmap = seg_model(l)
-            r_seg, r_segmap = seg_model(r)
+            with torch.no_grad():
+                _, l_aug = seg_model(l_aug)
+                _, r_aug = seg_model(r_aug)
 
-            l_seg_aug, _ = seg_model(l_aug)
-            r_seg_aug, _ = seg_model(r_aug)
+                l_segmap, l_seg = seg_model(l)
+                r_segmap, r_seg = seg_model(r)
 
             dl_scores = model(l_segmap, r_segmap)
+
             dl_ = F.softmax(-dl_scores, 2)
             dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
             mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
             mask = mask.unsqueeze(1).detach()
 
-            loss = loss_func(l_seg_aug, r_seg_aug, l_gt_aug, r_gt_aug, dl, r_seg, l_seg, dlgt, lgt, rgt)
+            loss = loss_func(l_aug, r_aug, l_gt_aug, r_gt_aug, dl, l_seg, r_seg, dlgt, lgt, rgt)
             loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
             total_test_loss += loss.item()
 
@@ -73,7 +81,7 @@ def compute_variance(dl, dl_prob, indices, mask):
     var = torch.sum(torch.pow((indices - dl.unsqueeze(1).unsqueeze(1)), 2).mul(dl_prob), 2)
     return var[mask].mean()
 
-def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_func, logger, tf_logger):
+def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, scheduler, loss_func, logger, tf_logger):
     start_full_time = time.time()
     seg_model.train()
     model.train()
@@ -82,6 +90,8 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
 
     iter_count = 0
     for epoch in range(start_epoch, end_epoch + 1):
+
+        adjust_learning_rate(optimizer, epoch)
         print('This is %d-th epoch' % epoch)
         total_train_loss = 0
 
@@ -92,15 +102,14 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
 
             start_time = time.time()
 
-            l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
-            optimizer.zero_grad()
+            l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
 
-            l_seg, l_segmap = seg_model(l)
-            r_seg, r_segmap = seg_model(r)
+            _, l_aug = seg_model(l_aug)
+            _, r_aug = seg_model(r_aug)
 
-            l_seg_aug, _ = seg_model(l_aug)
-            r_seg_aug, _ = seg_model(r_aug)
+            l_segmap, l_seg = seg_model(l)
+            r_segmap, r_seg = seg_model(r)
 
             dl_scores = model(l_segmap, r_segmap)
             dl_ = F.softmax(-dl_scores, 2)
@@ -109,9 +118,10 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             mask = (dlgt+cfg.TRAINING.MAXDISP > 0) & (dlgt+cfg.TRAINING.MAXDISP < 2*cfg.TRAINING.MAXDISP)
             mask = mask.unsqueeze(1).detach()
 
-            loss = loss_func(l_seg_aug, r_seg_aug, l_gt_aug, r_gt_aug, dl, r_seg, l_seg, dlgt, lgt, rgt)
+            loss = loss_func(l_aug, r_aug, l_gt_aug, r_gt_aug, dl, l_seg, r_seg, dlgt, lgt, rgt)
             if cfg.TRAINING.WITH_VAR_LOSS:
                 loss = loss + 0.001 * compute_variance(dlgt+cfg.TRAINING.MAXDISP, dl_, indices, mask)
+            optimizer.zero_grad()
 
             loss.backward()
 
@@ -121,7 +131,10 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
             total_train_loss += float(loss)
 
             tf_logger.add_loss_to_tensorboard('Train/Loss', loss.item(),iter_count )
+            tf_logger.add_loss_to_tensorboard('LR', optimizer.param_groups[0]['lr'], iter_count)
+
             iter_count+=1
+            torch.cuda.empty_cache()
 
         print('epoch %d total training loss = %.3f' % (epoch, total_train_loss / len(train_loader)))
 
@@ -148,6 +161,8 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, loss_fu
 
             print('model is saved: {} - {}'.format(epoch, savefilename))
 
+        scheduler.step(total_test_loss)
+
     print('full training time = %.2f HR' % ((time.time() - start_full_time) / 3600))
 
 
@@ -160,6 +175,8 @@ def train(cfg, cfg_aug):
 
     # create optimizer
     optimizer = make_optimizer(cfg, [seg_model, model])
+
+    scheduler = make_scheduler(cfg, optimizer)
 
     # create loss
     loss_func = make_loss(cfg)
@@ -174,6 +191,7 @@ def train(cfg, cfg_aug):
         train_loader,
         val_loader,
         optimizer,
+        scheduler,
         loss_func,
         logger, tf_logger)
 
