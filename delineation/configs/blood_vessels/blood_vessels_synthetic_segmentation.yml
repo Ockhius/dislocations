@@ -17,18 +17,18 @@ TRAINING:
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'blood_vessels_segmentation_unet'
+  EXPERIMENT_NAME: 'retina_synthetic_segmentation'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
-  NUM_WORKERS: 8
+  NUM_WORKERS: 4
   PIN_MEMORY: True
 
-  RESUME: ''
+  RESUME: ','
   START_EPOCH: 0
   EPOCHS: 150
 
-  BATCH_SIZE: 2
+  BATCH_SIZE: 6
   TEST_BATCH_SIZE: 2
 
   BASE_LR: 0.001
