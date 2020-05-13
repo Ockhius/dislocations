@@ -47,6 +47,8 @@ def visualize_volume(name, volume, rotation_angle, logdir, mode='scatter', save_
 
     if mode == 'scatter':
         fig = plt.figure()
+        fig.set_size_inches(10, 8)
+
         ax = fig.add_subplot(111, projection='3d')
         ax.set_ylim3d(0, volume.shape[2])
         ax.set_zlim3d(0, volume.shape[1])
@@ -57,11 +59,11 @@ def visualize_volume(name, volume, rotation_angle, logdir, mode='scatter', save_
         ax.scatter(dd, xx, yy, c='r', marker='.')
         plt.gca().invert_zaxis()
 
+
         if save_ext is not None:
             save_path = logdir + '_results/' + name
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
-
             plt.savefig(save_path + '/' + str(save_ext))
         if plot:
             plt.show()

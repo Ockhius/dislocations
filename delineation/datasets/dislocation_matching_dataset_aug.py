@@ -18,7 +18,7 @@ class MatchingDislocationsDataset(Dataset):
 
         self.root_dir = cfg.INPUT.SOURCE
         self.transform = transform
-        self.split = 'train' if train else 'test'
+        self.split = 'train' if train else 'val'
         #cfg file for augmentations
         self.cfg_aug = cfg_aug
 
@@ -179,7 +179,6 @@ class MatchingDislocationsDataset(Dataset):
 
         if np.max(right_gt_img) > 1:
             right_gt_img = right_gt_img / 255.0
-
 
         left_img = torch.from_numpy(left_img).float().unsqueeze(0)
         right_img = torch.from_numpy(right_img).float().unsqueeze(0)

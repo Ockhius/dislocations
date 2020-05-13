@@ -1,4 +1,5 @@
 import torch
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def make_optimizer(cfg, model):
 
@@ -14,3 +15,10 @@ def make_optimizer(cfg, model):
         optimizer = getattr(torch.optim, cfg.TRAINING.OPTIMIZER)(model.parameters(), lr=cfg.TRAINING.BASE_LR, betas=(0.9, 0.999))
 
     return optimizer
+
+
+def make_scheduler(cfg, optimizer):
+
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
+
+    return scheduler

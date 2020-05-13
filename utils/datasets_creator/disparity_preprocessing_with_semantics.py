@@ -3,10 +3,11 @@ import os
 import numpy as np
 import cv2
 from PIL import Image
+from tqdm import tqdm
 
 import argparse
 
-subsets = ['train', 'test','test_2020_04']
+subsets = ['train', 'val','test']
 
 subset_folders = ['disparity',
                   'left_image',
@@ -222,7 +223,13 @@ def create_disparity_and_segmentation_images(subset, path_to_images, save_path, 
     left_name, right_name = generate_path_to_save_image(save_path, subset, 'left_image', pair, path_to_json_b), \
                             generate_path_to_save_image(save_path, subset, 'right_image', pair, path_to_json_b)
 
-    b_image.save(left_name), d_image.save(right_name)
+
+    if np.array(b_image).dtype == np.int32:
+        table = [i / 256 for i in range(65536)]
+        b_image = b_image.point(table, 'L')
+        d_image = d_image.point(table, 'L')
+
+    b_image.convert('L').save(left_name), d_image.convert('L').save(right_name)
 
     all_dislocation_points_img_b, all_dislocation_points_img_d = generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
                                                                                                    width_b ,height_b, IMG_W, IMG_H, intermediate_keypoints)
@@ -260,27 +267,27 @@ if __name__ == '__main__':
     )
 
     parser.add_argument('--path_to_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics/', help='Path to labeled data.')
-    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/', help='Path to save datasets')
+    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized2/', help='Path to save datasets')
     parser.add_argument('--IMG_W', type=int, default=512, help='image width')
     parser.add_argument('--IMG_H', type=int, default=512, help='image height')
     parser.add_argument('--intermediate_keypoints', type=int, default=300, help='amount of intermediate keypoints')
 
     args = parser.parse_args()
 
-    test_pairs = ['1123', '1116', 'pairs_34', 'pairs_18_20',  'ant-B',
-                  'ant-D', 'ant2','ant',  '2507 5 2BC5 ZA3 mag OA20',
-                  'test1_semantics',  'test2_semantics',  'test3_semantics',
-                  'test4', 'test5','test6',
-                  '2019-12-02_TiAl_box3n15_zoom_1_2',
-                  '2019-12-02_TiAl_box3n15_zoom_4_3',
-                  '2019-12-02_TiAl_box3n15_zoom_7_5',
-                  '2019-12-02_TiAl_box3n15_zoom_7_6',
-                  'TiAl_box3n15_pairs_0_2',
-                  'TiAl_box3n15_pairs_0_4',
-                  'TiAl_box3n15_pairs_0_7',
-                  'TiAl_box3n15_pairs_0_16',
-                  'TiAl_box3n15_pairs_n2_2',
-                  'TiAl_box3n15_pairs_n4_4']
+    val_pairs = ['1123',
+                 '1116',
+                 'pairs_34',
+                 'pairs_18_20',
+                 'c_4',
+                 'ant-B',
+                 'ant-D',
+                 'ant2',
+                 'ant',
+                 '2507 5 2BC5 ZA3 mag OA20',
+                 '2019-12-02_TiAl_box3n15_zoom_1_2',
+                 '2019-12-02_TiAl_box3n15_zoom_4_3',
+                 '2019-12-02_TiAl_box3n15_zoom_7_5',
+                 '2019-12-02_TiAl_box3n15_zoom_7_6']
 
     # create dataset structure of folders
     create_dataset_folders(args.path_to_save_images)
@@ -288,16 +295,13 @@ if __name__ == '__main__':
     # iterate over folders to save resized dataset in the proper structure
     folders = os.listdir(args.path_to_images)
 
-    for folder in folders:
+    for folder in tqdm(folders):
         if '.DS_Store'  in folder:  continue
         path_images = os.path.join(args.path_to_images, folder)
         path_to_jsons = os.path.join(args.path_to_images, folder, 'results')
 
-        if folder in test_pairs:
-            subset = 'test'
-
-        elif '2020_04_15_pair' in folder:
-            subset = 'test_2020_04'
+        if folder in val_pairs:  subset = 'val'
+        elif 'New_dataset_01_05_2020' in folder: subset = 'test'
 
         else:
             subset = 'train'
