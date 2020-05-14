@@ -9,6 +9,10 @@ class TensorboardLogger:
     def add_loss_to_tensorboard(self, type, loss, iter):
         self.writer.add_scalar(type+'/Loss', loss, iter)
 
+    def add_segmentation_test_to_tensorboard(self, type, epoch, iter, total_loss):
+
+            self.writer.add_scalar(type + '/Loss', total_loss, iter)
+
     def add_scalars_to_tensorboard(self, type, epoch, iter, total_loss, values):
         pix1_err_m, pix3_err_m, pix5_err_m, epe_m = values
 
