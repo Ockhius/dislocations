@@ -7,25 +7,6 @@ import matplotlib.pyplot as plt
 
 from torch import nn
 
-# Warp loss from https://github.com/skmhrk1209/ForwardWarping-PyTorch/blob/master/warping.py
-
-def warp_backward(match_images, base_disparities, invert=True):
-    if base_disparities.dim() == 4:
-        base_disparities = base_disparities.squeeze(1)
-    y_coords = base_disparities.new_tensor(range(base_disparities.size(-2)))
-    x_coords = base_disparities.new_tensor(range(base_disparities.size(-1)))
-    y_coords, x_coords = torch.meshgrid(y_coords, x_coords)
-    y_coords = y_coords.unsqueeze(0).expand_as(base_disparities)
-    x_coords = x_coords.unsqueeze(0).expand_as(base_disparities)
-    x_coords = x_coords + (-base_disparities if invert else base_disparities)
-    y_coords = (y_coords - ((match_images.size(-2) - 1) / 2)) / ((match_images.size(-2) - 1) / 2)
-    x_coords = (x_coords - ((match_images.size(-1) - 1) / 2)) / ((match_images.size(-1) - 1) / 2)
-    coords = torch.stack((x_coords, y_coords), dim=-1)
-    match_images = nn.functional.grid_sample(match_images, coords, mode="bilinear", padding_mode="border")
-    return match_images
-
-
-
 def bce_segmentation_loss(projection, gt):
     criterion = torch.nn.BCEWithLogitsLoss()
     loss = criterion(projection, gt)
@@ -102,8 +83,8 @@ class warp_only_joint(torch.nn.Module):
         loss_seg1 = 0.5 * bce_segmentation_loss(l_aug, l_gt_aug) \
                + 0.5 * bce_segmentation_loss(r_aug, l_gt_aug)
 
-        recon_right = warp_backward(seg_l, dl)
-        _loss_recon = F.smooth_l1_loss(recon_right, rgt, reduction='mean')
+        recon_l =  warp(seg_r, dl)*seg_l
+        _loss_recon = F.smooth_l1_loss(recon_l, lgt, reduction='mean')
 
         return 0.5*loss_seg1 + _loss_recon
 
@@ -148,9 +129,9 @@ class smooth_l1_disparity_and_edge_warp_joint(torch.nn.Module):
 
         mask = lgt > 0
 
-        recon_right = warp_backward(seg_l, dl)
+        recon_l =  warp(F.sigmoid(seg_r), dl)*seg_l
 
-        _loss_recon = F.smooth_l1_loss(recon_right, rgt, reduction='mean')
+        _loss_recon = F.smooth_l1_loss(recon_l, lgt, reduction='mean')
 
         _loss = F.smooth_l1_loss(dl[mask], dlgt.unsqueeze(1)[mask], reduction='mean')
         _loss[torch.isnan(_loss)] = 0

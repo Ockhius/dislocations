@@ -104,14 +104,15 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, schedul
 
             l, r, lgt, rgt, dlgt = l.to(_device), r.to(_device), lgt.to(_device), rgt.to(_device), dlgt.to(_device)
             l_aug, r_aug, l_gt_aug, r_gt_aug = l_aug.to(_device), r_aug.to(_device), l_gt_aug.to(_device), r_gt_aug.to(_device)
+            with torch.no_grad():
+                _, l_aug = seg_model(l_aug)
+                _, r_aug = seg_model(r_aug)
 
-            _, l_aug = seg_model(l_aug)
-            _, r_aug = seg_model(r_aug)
-
-            l_segmap, l_seg = seg_model(l)
-            r_segmap, r_seg = seg_model(r)
+                l_segmap, l_seg = seg_model(l)
+                r_segmap, r_seg = seg_model(r)
 
             dl_scores = model(l_segmap, r_segmap)
+
             dl_ = F.softmax(-dl_scores, 2)
             dl = torch.sum(dl_.mul(indices), 2) - cfg.TRAINING.MAXDISP
 
