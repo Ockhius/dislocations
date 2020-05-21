@@ -166,7 +166,7 @@ class MatchingDislocationsDataset(Dataset):
 
         if self.split=='train' and self.cfg_aug['TRAINING']['TRANSLATION_AUG'] == True:
 
-            translation = np.random.randint(-8, 8)
+            translation =  np.random.randint(-5, 5)
             num_rows, num_cols = np.array(left_img).shape
 
             T = np.float32([[1, 0, translation], [0, 1, 0]])
