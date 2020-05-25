@@ -1,0 +1,59 @@
+INPUT:
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
+
+LOGGING:
+
+  ENABLE_LOGGING: True
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/logs/'
+  LOG_INTERVAL: 1
+
+TRAINING:
+
+  ONLY_SAVE_FEATURES: False
+  MODEL: 'unet-efficient,scmnet'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/models/'
+  SAVE_MODEL_STEP: 10
+  AUGMENTATION: True
+
+  LOSS: 'warp_only_joint'
+  WITH_VAR_LOSS: False
+
+  EXPERIMENT_NAME: 'dislocations_matching_only_warp_joint_32'
+  TRAINING_SET: 'dislocations_matching' # dislocations_matching
+  NUM_CHANNELS: 1
+
+  NUM_WORKERS: 8
+  PIN_MEMORY: True
+
+  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,'
+  START_EPOCH: 0
+  EPOCHS: 150
+
+  BATCH_SIZE: 2
+  TEST_BATCH_SIZE: 2
+
+  BASE_LR: 0.0001
+  LR_DECAY: 1e-6
+  MOMENTUM: 0.9
+
+  W_DECAY: 1e-4
+  OPTIMIZER: 'Adam'
+
+  AUG: False
+
+  CUDA: True
+  GPU_ID: 1
+
+  SEED: 42
+  RESBLOCK_NUM: 2
+  DISPBLOCK_NUM: 1
+  MAXDISP: 64
+  DISPSPACE: 'two-sided'
+  WIDTH: 512
+  HEIGHT: 512
+
+TEST:
+
+  BATCH_SIZE: 4
+  CUDA: True
+  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation/150_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_with_warp_edge_coeff/150_scmnet_light.tar'

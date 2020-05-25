@@ -7,6 +7,9 @@ def make_loss(cfg):
     if type == 'bce':
         return binary_cross_entropy()
 
+    if type == 'dice_cl_loss':
+        return dice_cl_loss()
+
     if type == 'warp_only':
         return warp_only()
 

@@ -10,14 +10,14 @@ LOGGING:
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'unet'
+  MODEL: 'unet-efficient'
   MODEL_DIR: 'models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation'
+  EXPERIMENT_NAME: 'dislocations_segmentation_effnet-b0'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
@@ -26,9 +26,9 @@ TRAINING:
 
   RESUME: ''
   START_EPOCH: 0
-  EPOCHS: 150
+  EPOCHS: 130
 
-  BATCH_SIZE: 3
+  BATCH_SIZE: 8
   TEST_BATCH_SIZE: 2
 
   BASE_LR: 0.001
@@ -49,4 +49,4 @@ TEST:
 
   BATCH_SIZE: 8
   CUDA: True
-  MODEL_WEIGHTS: ''
+  MODEL_WEIGHTS: '/home/dagnyt/EPFL/dislocations/logs/dislocations_segmentation_effnet-b0/130_segmentor.tar'
