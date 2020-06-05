@@ -79,8 +79,8 @@ def generate_path_to_save_image(path_to_save_images, subset, folder, pair, path_
 def seg_generator(all_dislocation_points, gen_images, indx):
 
     for disloc in all_dislocation_points:
-            for i in range(0,2):
-                for j in range(0,2):
+            for i in range(0,1):
+                for j in range(0,1):
                     try:
                         gen_images[indx][int(disloc[1]) + i, int(disloc[0]) - j] = 255
                         gen_images[indx][int(disloc[1]) - i, int(disloc[0]) + j] = 255
@@ -95,8 +95,8 @@ def disp_generator(all_dislocation_points, gen_images, disp, indx):
 
     for idx, disl in enumerate(all_dislocation_points):
 
-            for i in range(0,2):
-                for j in range(0,2):
+            for i in range(0,1):
+                for j in range(0,1):
                     try:
                         gen_images[indx][int(disl[1]) + i, int(disl[0]) - j]  = -disp[idx][0].round() + 127
                         gen_images[indx][int(disl[1]) - i, int(disl[0]) + j]  = -disp[idx][0].round() + 127
@@ -164,6 +164,11 @@ def generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
 
     with open(path_to_json_b) as f: img_b = json.load(f)
     with open(path_to_json_d) as f: img_d = json.load(f)
+
+    shapes = img_b['shapes'].copy()
+    for shape_id, shape in enumerate(img_d['shapes']):
+        for idx, point in enumerate(shape['points']):
+            img_d['shapes'][shape_id]['points'][idx][1] = shapes[shape_id]['points'][idx][1]
 
     all_disl_points_img_b, all_disl_points_img_d = [], []
 
@@ -236,10 +241,6 @@ def create_disparity_and_segmentation_images(subset, path_to_images, save_path, 
     img_b_segmentation, img_d_segmentation = generate_segmentation_images(all_dislocation_points_img_b, all_dislocation_points_img_d, IMG_W, IMG_H)
 
     # given preprocessed keypoints, generate images
-
-    all_dislocation_points_img_b, all_dislocation_points_img_d = generate_extended_image_keypoints(path_to_json_b, path_to_json_d,
-                                                                                                   width_b ,height_b, IMG_W, IMG_H, intermediate_keypoints)
-
     disparity_img, disparity_img_r = generate_disparity_images(all_dislocation_points_img_b, all_dislocation_points_img_d, IMG_W, IMG_H)
 
     img_b_segmentation, img_d_segmentation = generate_polygons(path_to_json_b, path_to_json_d,img_b_segmentation, img_d_segmentation, width_b ,height_b, IMG_W, IMG_H)
