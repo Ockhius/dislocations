@@ -14,11 +14,11 @@ import cv2
 
 class MatchingDislocationsDataset(Dataset):
 
-    def __init__(self, cfg, cfg_aug, transform=None, train=True):
+    def __init__(self, cfg, cfg_aug, transform=None, split='train'):
 
         self.root_dir = cfg.INPUT.SOURCE
         self.transform = transform
-        self.split = 'train' if train else 'val'
+        self.split = split
         #cfg file for augmentations
         self.cfg_aug = cfg_aug
 

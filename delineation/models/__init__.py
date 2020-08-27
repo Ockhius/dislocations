@@ -82,7 +82,7 @@ def build_model(cfg, save_representations=False):
     return model
 
 
-def build_model_list(cfg, save_representations):
+def build_model_list(cfg, is_evaluate):
     model_names = cfg.TRAINING.MODEL.split(',')
     model_weights = cfg.TEST.MODEL_WEIGHTS.split(',')
     model_resume = cfg.TRAINING.RESUME.split(',')
@@ -121,10 +121,10 @@ def build_model_list(cfg, save_representations):
             print("=> loaded checkpoint '{}' (epoch {})"
                   .format(model_resume[idx], state_dict['epoch']))
 
-        if save_representations and len(model_weights[idx])>3:
+        if is_evaluate and len(model_weights[idx])>3:
             state_dict = torch.load(model_weights[idx])
             model.load_state_dict(state_dict['state_dict'])
-            print("=> loaded checkpoint '{}' (epoch {})"
+            print("=> loaded inference checkpoint '{}' (epoch {})"
                   .format(model_weights[idx], state_dict['epoch']))
 
             model.eval()

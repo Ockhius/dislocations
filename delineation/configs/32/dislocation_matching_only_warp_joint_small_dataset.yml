@@ -1,5 +1,5 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized_big_data/'
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
 
 LOGGING:
 
@@ -15,10 +15,10 @@ TRAINING:
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
-  LOSS: 'smooth_l1_disparity_and_edge_warp_joint'
-  WITH_VAR_LOSS: True
+  LOSS: 'warp_only_joint'
+  WITH_VAR_LOSS: False
 
-  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_32'
+  EXPERIMENT_NAME: 'dislocations_matching_only_warp_joint_32'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
@@ -56,4 +56,4 @@ TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_matching_disp_warp_var_joint_32/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020_small_dataset/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020_small_dataset/models/dislocations_matching_only_warp_joint_32/150_scmnet_light.tar'

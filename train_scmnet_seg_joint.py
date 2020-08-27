@@ -169,7 +169,7 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, schedul
 
 def train(cfg, cfg_aug):
     # create dataset
-    train_loader, val_loader = make_data_loader(cfg, cfg_aug)
+    train_loader, val_loader, _ = make_data_loader(cfg, cfg_aug)
 
     # create model
     seg_model, model = build_model_list(cfg, False)

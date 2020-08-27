@@ -79,8 +79,8 @@ def generate_path_to_save_image(path_to_save_images, subset, folder, pair, path_
 def seg_generator(all_dislocation_points, gen_images, indx):
 
     for disloc in all_dislocation_points:
-            for i in range(0,1):
-                for j in range(0,1):
+            for i in range(0,2):
+                for j in range(0,2):
                     try:
                         gen_images[indx][int(disloc[1]) + i, int(disloc[0]) - j] = 255
                         gen_images[indx][int(disloc[1]) - i, int(disloc[0]) + j] = 255
@@ -95,8 +95,8 @@ def disp_generator(all_dislocation_points, gen_images, disp, indx):
 
     for idx, disl in enumerate(all_dislocation_points):
 
-            for i in range(0,1):
-                for j in range(0,1):
+            for i in range(0,2):
+                for j in range(0,2):
                     try:
                         gen_images[indx][int(disl[1]) + i, int(disl[0]) - j]  = -disp[idx][0].round() + 127
                         gen_images[indx][int(disl[1]) - i, int(disl[0]) + j]  = -disp[idx][0].round() + 127

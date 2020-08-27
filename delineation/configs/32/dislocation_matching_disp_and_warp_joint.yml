@@ -1,17 +1,17 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized_big_data/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/logs/'
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
   MODEL: 'unet-efficient,scmnet'
-  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/models/'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
@@ -56,4 +56,4 @@ TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation/150_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_with_warp_edge_coeff/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_matching_disp_warp_joint_32/150_scmnet_light.tar'
