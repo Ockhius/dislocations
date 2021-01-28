@@ -103,6 +103,9 @@ def create_segmentation_masks(path_to_jsons, path_to_images, subset, args):
     image_sizes = [image.size for image in images]
     # resize images to specified width and height
     resized_images = [image.resize((args.IMG_W, args.IMG_H)) for image in images]
+    table = [i / 256 for i in range(65536)]
+    resized_images = [img.point(table, 'L') if np.array(img).dtype == np.int32 else img for img in resized_images]
+
     # generate_extended_keypoints
     extended_keypoints = [generate_extended_image_keypoints(os.path.join(path_to_jsons, path_to_json),
                                       image_sizes[idx][0] ,image_sizes[idx][1],
@@ -125,7 +128,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Dislocation Segmentation training")
 
-    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/segmentation/', help='Path to save datasets')
+    parser.add_argument('--path_to_save_images', type=str,default='/cvlabdata1/cvlab/datasets_anastasiia/dislocations/segmentation/', help='Path to save datasets')
     parser.add_argument('--IMG_W', type=int, default=512, help='image width')
     parser.add_argument('--IMG_H', type=int, default=512, help='image height')
     parser.add_argument('--intermediate_keypoints', type=int, default=300, help='amount of intermediate keypoints')
@@ -145,10 +148,8 @@ if __name__ == '__main__':
             path_images = os.path.join(image_folder_path, folder)
             path_to_jsons = os.path.join(image_folder_path, folder, 'results')
 
-            if folder in val_pairs:
+            if 'New_dataset_01_05_2020' in folder:
                 subset = 'val'
-            elif 'New_dataset_01_05_2020' in folder:
-                subset = 'test'
             else:
                 subset = 'train'
 

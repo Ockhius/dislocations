@@ -2,7 +2,7 @@ import torch
 from delineation.datasets.dislocation_dataset import DislocationDataset
 from delineation.datasets.dislocation_matching_dataset import MatchingDislocationsDataset
 from delineation.datasets.dislocation_matching_dataset_aug import MatchingDislocationsDataset as MatchingDislocationsDatasetAug
-
+from delineation.datasets.dislocation_segmentation_only_dataset import DislocationsSegmentationDataset
 
 def make_data_loader(cfg, cfg_aug, save_representations= False):
 
@@ -31,6 +31,10 @@ def make_data_loader(cfg, cfg_aug, save_representations= False):
 
         train_set = MatchingDislocationsDataset(cfg, cfg_aug, train=True)
         val_set = MatchingDislocationsDataset(cfg, cfg_aug, train=False)
+
+    elif cfg.TRAINING.TRAINING_SET == 'dislocations_segmentation_only':
+        train_set = DislocationsSegmentationDataset(cfg, train=True, save_representations = False)
+        val_set   = DislocationsSegmentationDataset(cfg, train=False, save_representations = False)
 
     else:
         raise NotImplementedError
