@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 import argparse
 
-subsets = ['train', 'val','test']
+subsets = ['train', 'val','test', 'test2']
 
 subset_folders = ['disparity',
                   'left_image',
@@ -268,9 +268,9 @@ if __name__ == '__main__':
     )
 
     parser.add_argument('--path_to_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics/', help='Path to labeled data.')
-    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized_1024/', help='Path to save datasets')
-    parser.add_argument('--IMG_W', type=int, default=1024, help='image width')
-    parser.add_argument('--IMG_H', type=int, default=1024, help='image height')
+    parser.add_argument('--path_to_save_images', type=str,default='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/', help='Path to save datasets')
+    parser.add_argument('--IMG_W', type=int, default=512, help='image width')
+    parser.add_argument('--IMG_H', type=int, default=512, help='image height')
     parser.add_argument('--intermediate_keypoints', type=int, default=300, help='amount of intermediate keypoints')
 
     args = parser.parse_args()
@@ -302,9 +302,10 @@ if __name__ == '__main__':
         path_to_jsons = os.path.join(args.path_to_images, folder, 'results')
 
         if folder in val_pairs:  subset = 'val'
-        elif 'New_dataset_01_05_2020' in folder \
-                or '3_45im_-48+50_pair' in folder:
+        elif 'New_dataset_01_05_2020' in folder:
             subset = 'test'
+        elif '3_45im_-48+50_pair' in folder:
+            subset = 'test2'
 
         else:
             subset = 'train'
