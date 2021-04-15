@@ -88,7 +88,7 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, schedul
 
     start_epoch, end_epoch = cfg.TRAINING.START_EPOCH, cfg.TRAINING.EPOCHS
 
-    iter_count = 0
+    iter_count, test_loss_ = 0, 100
     for epoch in range(start_epoch, end_epoch + 1):
 
         adjust_learning_rate(optimizer, epoch)
@@ -143,6 +143,24 @@ def do_train(cfg, seg_model, model, train_loader, val_loader, optimizer, schedul
             total_test_loss = do_validate(epoch, seg_model, model, val_loader, loss_func, tf_logger)
             logger.log_string('test loss for epoch {} : {}\n'.format(epoch, total_test_loss))
             print('epoch %d total test loss = %.3f' % (epoch, total_test_loss))
+
+            if total_test_loss < test_loss_:
+                test_loss_ = total_test_loss
+
+                savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, 'best_scmnet_light.tar')
+                savefilename_seg = os.path.join(cfg.TRAINING.MODEL_DIR,  'best_seg.tar')
+
+                torch.save({
+                    'epoch': epoch,
+                    'state_dict': model.state_dict(),
+                    'train_loss': total_train_loss / len(train_loader.dataset),
+                }, savefilename)
+
+                torch.save({
+                    'epoch': epoch,
+                    'state_dict': seg_model.state_dict(),
+                    'train_loss': total_train_loss / len(train_loader.dataset),
+                }, savefilename_seg)
 
         if epoch % cfg.TRAINING.SAVE_MODEL_STEP == 0:
             savefilename = os.path.join(cfg.TRAINING.MODEL_DIR, str(epoch) + '_scmnet_light.tar')

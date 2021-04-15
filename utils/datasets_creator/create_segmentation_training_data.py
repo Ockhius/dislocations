@@ -137,6 +137,7 @@ if __name__ == '__main__':
     create_dataset_folders(args.path_to_save_images)
 
     images_paths = ['/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/01_12_21_for_video',
+                    '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/02-18-21',
                     '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics']
 
     for image_folder_path in images_paths:
