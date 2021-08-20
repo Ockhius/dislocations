@@ -1,7 +1,2 @@
-python train_scmnet.py --config_file='delineation/configs/dislocation_matching_only_disp.yml'
-python train_scmnet.py --config_file='delineation/configs/dislocation_matching_disp_and_warp_and var.yml'
-python train_scmnet.py --config_file='delineation/configs/dislocation_matching_disp_and_warp.yml'
-python train_scmnet.py --config_file='delineation/configs/dislocation_matching_disp_and_var.yml'
-python train_scmnet.py --config_file='delineation/configs/dislocation_matching_only_warp.yml'
-cd /cvlabsrc1/cvlab/datasets_anastasiia/descriptors/glam-log-polar
-python modules/hardnet/hardnet.py
+python train_segmentation.py --config_file='/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/delineation/configs/dislocation_synthetic_segmentation.yml'
+python train_scmnet_seg_joint.py --config_file='delineation/configs/32/dislocation_matching_disp_and_warp_and var_joint_synthetic.yml'
