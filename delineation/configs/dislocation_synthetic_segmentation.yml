@@ -1,23 +1,23 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/datasets/synthetic_dislocations'
+  SOURCE: '/cvlabdata2/cvlab/datasets_anastasiia/Datasets/Dislocations/SyntheticDislocations_V2/dislocations_dataset/dislocations/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: 'logs/'
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'unet'
-  MODEL_DIR: 'models/'
+  MODEL: 'unet-efficient'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'dislocations_synthetic_segmentation_unet'
+  EXPERIMENT_NAME: 'dislocations_synthetic_segmentation_seg_with_real'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
@@ -28,7 +28,7 @@ TRAINING:
   START_EPOCH: 0
   EPOCHS: 150
 
-  BATCH_SIZE: 2
+  BATCH_SIZE: 6
   TEST_BATCH_SIZE: 2
 
   BASE_LR: 0.001
