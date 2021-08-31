@@ -115,7 +115,7 @@ def do_train(
 def train(cfg):
 
         # create dataset
-        train_loader, val_loader = make_data_loader(cfg, cfg_aug)
+        train_loader, val_loader,_ = make_data_loader(cfg, cfg_aug)
 
         # create model
         model = build_segmentation_model(cfg)

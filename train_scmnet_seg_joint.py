@@ -20,7 +20,7 @@ sys.path.append(".")
 
 def adjust_learning_rate(optimizer, epoch):
     """Sets the learning rate to the initial LR decayed by 10 every 40 epochs"""
-    lr = cfg.TRAINING.BASE_LR * (0.1 ** (epoch // 80))
+    lr = cfg.TRAINING.BASE_LR * (0.1 ** (epoch // 40))
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
