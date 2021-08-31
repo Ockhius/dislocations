@@ -1,24 +1,24 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized'
+  SOURCE: '/cvlabdata1/cvlab/datasets_anastasiia/dislocations/segmentation/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: 'logs/'
+  LOG_DIR: '/cvlabdata1/cvlab/datasets_anastasiia/dislocations/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
   MODEL: 'unet-efficient'
-  MODEL_DIR: 'models/'
+  MODEL_DIR: '/cvlabdata1/cvlab/datasets_anastasiia/dislocations/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
-  LOSS: 'bce'
+  LOSS: 'bce_one'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation_effnet-b0'
-  TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
+  EXPERIMENT_NAME: 'dislocations_segmentation_only_effnet-b0_1'
+  TRAINING_SET: 'dislocations_segmentation_only' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 4

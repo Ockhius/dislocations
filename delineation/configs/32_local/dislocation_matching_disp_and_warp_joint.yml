@@ -1,5 +1,5 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized2/'
+  SOURCE: '/home/dagnyt/EPFL/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
 
 LOGGING:
 
@@ -10,27 +10,27 @@ LOGGING:
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'unet,scmnet'
+  MODEL: 'unet-efficient,scmnet'
   MODEL_DIR: 'models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'smooth_l1_disparity_and_edge_warp_joint'
-  WITH_VAR_LOSS: True
+  WITH_VAR_LOSS: False
 
-  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_dataset2'
+  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_joint_32'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 8
   PIN_MEMORY: True
 
-  RESUME: ','
+  RESUME: '/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_segmentation_effnet-b0/130_segmentor.tar,'
   START_EPOCH: 0
   EPOCHS: 150
 
-  BATCH_SIZE: 2
-  TEST_BATCH_SIZE: 2
+  BATCH_SIZE: 1
+  TEST_BATCH_SIZE: 1
 
   BASE_LR: 0.0001
   LR_DECAY: 1e-6
@@ -47,13 +47,13 @@ TRAINING:
   SEED: 42
   RESBLOCK_NUM: 2
   DISPBLOCK_NUM: 1
-  MAXDISP: 60
+  MAXDISP: 32
   DISPSPACE: 'two-sided'
   WIDTH: 512
   HEIGHT: 512
 
 TEST:
 
-  BATCH_SIZE: 4
+  BATCH_SIZE: 1
   CUDA: True
-  MODEL_WEIGHTS: '/home/dagnyt/EPFL/dislocations/logs/dislocations_segmentation_effnet-b0/130_segmentor.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_with_warp_edge_coeff/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_segmentation_effnet-b0/130_segmentor.tar,/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_matching_disp_warp_joint_32/150_scmnet_light.tar'

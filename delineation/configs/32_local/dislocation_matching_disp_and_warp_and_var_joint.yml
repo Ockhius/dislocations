@@ -1,5 +1,5 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
+  SOURCE: '/home/dagnyt/EPFL/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
 
 LOGGING:
 
@@ -18,19 +18,19 @@ TRAINING:
   LOSS: 'smooth_l1_disparity_and_edge_warp_joint'
   WITH_VAR_LOSS: True
 
-  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_from_scratch_warp_loss'
+  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_32'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 8
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_disp_warp_var_joint_32/130_seg.tar,'
+  RESUME: '/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_segmentation_effnet-b0/130_segmentor.tar,'
   START_EPOCH: 0
   EPOCHS: 150
 
-  BATCH_SIZE: 2
-  TEST_BATCH_SIZE: 2
+  BATCH_SIZE: 1
+  TEST_BATCH_SIZE: 1
 
   BASE_LR: 0.0001
   LR_DECAY: 1e-6
@@ -54,6 +54,6 @@ TRAINING:
 
 TEST:
 
-  BATCH_SIZE: 4
+  BATCH_SIZE: 1
   CUDA: True
-  MODEL_WEIGHTS: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_disp_warp_var_joint_32/150_seg.tar,/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_matching_disp_warp_var_joint_32/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_segmentation_effnet-b0/130_segmentor.tar,/home/dagnyt/EPFL/dislocations/models/models_2020_08/dislocations_matching_disp_warp_var_joint_32/150_scmnet_light.tar'

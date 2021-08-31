@@ -25,9 +25,9 @@ TRAINING:
   NUM_WORKERS: 4
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation/150_segmentor.tar,'
+  RESUME: ','
   START_EPOCH: 0
-  EPOCHS: 150
+  EPOCHS: 80
 
   BATCH_SIZE: 2
   TEST_BATCH_SIZE: 2
@@ -47,7 +47,7 @@ TRAINING:
   SEED: 42
   RESBLOCK_NUM: 2
   DISPBLOCK_NUM: 1
-  MAXDISP: 32
+  MAXDISP: 64
   DISPSPACE: 'two-sided'
   WIDTH: 512
   HEIGHT: 512

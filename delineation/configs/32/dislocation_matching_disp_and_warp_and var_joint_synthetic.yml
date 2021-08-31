@@ -1,35 +1,35 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized_big_data/'
+  SOURCE: '/cvlabdata2/cvlab/datasets_anastasiia/Datasets/Dislocations/SyntheticDislocations_V2/dislocations_dataset/dislocations/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020/logs/'
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
   MODEL: 'unet-efficient,scmnet'
-  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_26_2020/models/'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'smooth_l1_disparity_and_edge_warp_joint'
   WITH_VAR_LOSS: True
 
-  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_32'
+  EXPERIMENT_NAME: 'dislocations_matching_disp_warp_var_joint_synthetic_seg_with_real'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 8
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,'
+  RESUME: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/models/dislocations_synthetic_segmentation_seg_with_real/130_segmentor.tar,'
   START_EPOCH: 0
   EPOCHS: 150
 
-  BATCH_SIZE: 2
+  BATCH_SIZE: 5
   TEST_BATCH_SIZE: 2
 
   BASE_LR: 0.0001
@@ -56,4 +56,4 @@ TEST:
 
   BATCH_SIZE: 4
   CUDA: True
-  MODEL_WEIGHTS: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020_big_dataset/models/dislocations_matching_disp_warp_var_joint_32/150_scmnet_light.tar'
+  MODEL_WEIGHTS: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/models/dislocations_matching_disp_warp_var_joint_synthetic_seg_with_real/best_seg.tar,/cvlabdata2/cvlab/datasets_anastasiia/dislocations/06_08_2021/models/dislocations_matching_disp_warp_var_joint_synthetic_seg_with_real/best_scmnet_light.tar'

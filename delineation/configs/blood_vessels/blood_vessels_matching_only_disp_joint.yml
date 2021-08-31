@@ -1,31 +1,31 @@
 INPUT:
-  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/INSPIRE_PNG_ALL_resizedL/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: 'logs/'
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
-  MODEL: 'unet,scmnet'
-  MODEL_DIR: 'models/'
+  MODEL: 'unet-efficient,scmnet'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'smooth_l1_masked_disparity_joint'
   WITH_VAR_LOSS: False
 
-  EXPERIMENT_NAME: 'dislocations_matching_only_disp_joint'
+  EXPERIMENT_NAME: 'blood_vessels_matching_only_disp_joint_32'
   TRAINING_SET: 'dislocations_matching' # dislocations_matching
   NUM_CHANNELS: 1
 
   NUM_WORKERS: 8
   PIN_MEMORY: True
 
-  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/dislocations_segmentation_effnet-b0/130_segmentor.tar,'
+  RESUME: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/dislocations/models/blood_vessels_segmentation_effnet-b0/130_segmentor.tar,'
   START_EPOCH: 0
   EPOCHS: 150
 
@@ -47,7 +47,7 @@ TRAINING:
   SEED: 42
   RESBLOCK_NUM: 2
   DISPBLOCK_NUM: 1
-  MAXDISP: 60
+  MAXDISP: 32
   DISPSPACE: 'two-sided'
   WIDTH: 512
   HEIGHT: 512

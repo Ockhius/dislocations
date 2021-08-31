@@ -1,0 +1,100 @@
+INPUT:
+  TRAIN: '/media/dagnyt/74703FC0703F87BE/Kaggle/descriptors/PSDataset/PS-Dataset/'
+  TRAIN_FILES: 'dataset/ps_dataset/ps-dataset_train.txt'
+
+  TEST: '/media/dagnyt/74703FC0703F87BE/Kaggle/descriptors/PSDataset/PS-Dataset/'
+  TEST_FILES: 'dataset/ps_dataset/ps-dataset_test.txt'
+
+TRAINING:
+    TRAINING_SET: 'ps-dataset'
+    EXPERIMENT_NAME: 'ps-dataset_hardnet_ori_mean_feat_supervised_th1'
+    MODEL_DIR: 'models'
+    MODEL: 'init'
+    CUDA: True
+    GPU_ID: 0
+    SEED: 42
+    INPUT_LAYER: 1
+    IMAGE_SIZE_H: 256
+    IMAGE_SIZE_W: 256
+    LOAD_PRE_TRAINING: False
+    LEAARNING_RATE: 0.001
+    START_EPOCH: 0
+    END_EPOCHS: 200
+    NMS_EPOCH0: 10
+    NMS_OTHERS: 10
+    BATCH_SIZE: 5
+    DISTANCE_THRESHOLD: 1
+    PLOT_EVERY_X_BATCHES: 50
+    OPTIMIZER: Adam
+    BASE_LR: 0.001
+    SAVE_MODEL_STEP: 1
+    NUM_WORKERS: 8
+    TRANSLATION_AUG: True
+
+
+    AUGMENTATION:
+      AUGMENTATION_LIST:
+        - additive_gaussian_noise
+        - random_brightness
+        - random_contrast
+        - add_shade
+        - motion_blur
+        - gamma_correction
+        - no_aug
+
+      ADDITIVE_GAUSSIAN_NOISE:
+        STD_MIN: 0
+        STD_MAX: 1.0
+      ADDITIVE_SPECKLE_NOISE:
+        INTENSITY: 1
+      MOTION_BLUR:
+        MAX_KSIZE: 15
+      GAMMA_CORRECTION:
+        MIN_GAMMA: 0.5
+        MAX_GAMMA: 1.5
+
+    SAMPLE_HOMOGRAPHY:
+      SCALING:
+        USE_SCALING: True
+        MIN_SCALING_X: 0.8
+        MAX_SCALING_X: 1.2
+        MIN_SCALING_Y: 0.8
+        MAX_SCALING_Y: 1.2
+      PERSPECTIVE:
+        USE_PERSPECTIVE: True
+        MIN_PERSPECTIVE_X: 0.000001
+        MAX_PERSPECTIVE_X: 0.0005
+        MIN_PERSPECTIVE_Y: 0.000001
+        MAX_PERSPECTIVE_Y: 0.0005
+      TRANSLATION:
+        USE_TRANSLATION: True
+        MAX_HORIZONTAL_DIS: 20
+        MAX_VERTICAL_DIS: 20
+      SHEARING:
+        USE_SHEARING: True
+        MIN_SHEARING_X: -0.2
+        MAX_SHEARING_X: 0.2
+        MIN_SHEARING_Y: -0.2
+        MAX_SHEARING_Y: 0.2
+      ROTATION:
+        USE_ROTATION: True
+        MAX_ANGLE: 40
+
+TEST:
+    IMAGE_SIZE_H: 256
+    IMAGE_SIZE_W: 256
+    TESTING: True
+    TESTING_EVERY: 1
+    NMS: 10
+    BATCH_SIZE: 5
+    MIN_PROB: 0.5
+    WEIGHTS: '/weight/42glampoints.tar'
+
+LOGGING:
+
+  ENABLE_LOGGING: True
+  ENABLE_PLOTTING: True
+  LOG_INTERVAL: 1
+  PLOT_INTERVALS: 10
+  IMG_DIR: 'images/'
+  LOG_DIR: 'logs/'

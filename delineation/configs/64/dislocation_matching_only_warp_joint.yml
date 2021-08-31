@@ -4,14 +4,14 @@ INPUT:
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/logs/'
+  LOG_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020/logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
   MODEL: 'unet-efficient,scmnet'
-  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/05_18_2020/models/'
+  MODEL_DIR: '/cvlabdata2/cvlab/datasets_anastasiia/dislocations/08_17_2020/models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 

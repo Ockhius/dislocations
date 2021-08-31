@@ -1,23 +1,23 @@
 INPUT:
-  SOURCE: '/home/dagnyt/EPFL/dislocations/ALL_DATA_fixed_bottom_img_with_semantics_resized/'
+  SOURCE: '/cvlabsrc1/cvlab/datasets_anastasiia/dislocations/INSPIRE_PNG_ALL_resizedL/'
 
 LOGGING:
 
   ENABLE_LOGGING: True
-  LOG_DIR: 'logs_effnet0_features/'
+  LOG_DIR: 'logs/'
   LOG_INTERVAL: 1
 
 TRAINING:
 
   ONLY_SAVE_FEATURES: False
   MODEL: 'unet-efficient'
-  MODEL_DIR: 'models_effnet0_features/'
+  MODEL_DIR: 'models/'
   SAVE_MODEL_STEP: 10
   AUGMENTATION: True
 
   LOSS: 'bce'
 
-  EXPERIMENT_NAME: 'dislocations_segmentation_effnet-b0'
+  EXPERIMENT_NAME: 'blood_vessels_segmentation_effnet-b0'
   TRAINING_SET: 'dislocations' # possible 'us3d', 'dislocations'
   NUM_CHANNELS: 1
 
@@ -26,9 +26,9 @@ TRAINING:
 
   RESUME: ''
   START_EPOCH: 0
-  EPOCHS: 150
+  EPOCHS: 130
 
-  BATCH_SIZE: 2
+  BATCH_SIZE: 8
   TEST_BATCH_SIZE: 2
 
   BASE_LR: 0.001
@@ -41,12 +41,12 @@ TRAINING:
   AUG: False
 
   CUDA: True
-  GPU_ID: 1
+  GPU_ID: 0
 
   SEED: 42
 
 TEST:
 
-  BATCH_SIZE: 4
+  BATCH_SIZE: 8
   CUDA: True
   MODEL_WEIGHTS: '/home/dagnyt/EPFL/dislocations/logs/dislocations_segmentation_effnet-b0/130_segmentor.tar'
