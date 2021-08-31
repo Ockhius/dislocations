@@ -51,9 +51,9 @@ def generate_extended_image_keypoints(path_to_json_b, intermediate_keypoints):
 
 if __name__ == '__main__':
 
-    json_path = '/Users/anastasiia.mishchuk/Downloads/Dataset2_31072020/35 2BC6 CL=330-30-1.json'
+    json_path = '/Users/anastasiia.mishchuk/Downloads/35 2BC6 CL=330-30-2.json'
     segmentation_path = json_path.replace('.json','_gt.png')
-    intermediate_keypoints = 100
+    intermediate_keypoints = 300
 
     extended_keypoints = generate_extended_image_keypoints(json_path, intermediate_keypoints)
     segmentation_mask = seg_generator(extended_keypoints, 1024,1024)
